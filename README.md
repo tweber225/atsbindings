@@ -1,2 +1,2 @@
-# ats-bindings
+# atsbindings
 Python bindings for AlazarTech API.
