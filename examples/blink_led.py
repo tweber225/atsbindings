@@ -8,8 +8,8 @@ from atsbindings.enumerations import LED
 # recommended initial test
 
 # Adjustable parameters
-blink_period = 0.5 # seconds
-blinking_duration = 5 # seconds
+blink_period = 0.33 # seconds
+blinking_duration = 7 # seconds
 
 
 board = Board()

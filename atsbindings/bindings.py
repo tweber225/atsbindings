@@ -1,3 +1,6 @@
+from pathlib import Path
+import tomllib
+import re
 import ctypes
 from ctypes import (byref, POINTER, c_byte, c_char_p, c_uint8, c_uint16, 
                     c_uint32, c_void_p, c_long, c_float)
@@ -5,7 +8,121 @@ from ctypes import (byref, POINTER, c_byte, c_char_p, c_uint8, c_uint16,
 import numpy as np
 
 from atsbindings.enumerations import *
-from atsbindings.board_specific_info import BoardSpecificInfo
+
+
+
+class BoardSpecificInfo:
+    def __init__(self, board_kind):
+        if hasattr(board_kind, "name"):
+            board_kind = board_kind.name
+
+        # Open and read the TOML file
+        fn = Path(__file__).parent / "board_specific_info.toml"
+        with open(fn, "rb") as f:
+            bsi = tomllib.load(f)
+
+        self.channels:int = bsi[board_kind]["channels"]
+        self._input_ranges:dict = bsi[board_kind]["input_ranges"]
+        self.min_record_size:int = bsi[board_kind]["min_record_size"]
+        self.pretrig_alignment:int = bsi[board_kind]["pretrig_alignment"]
+        self.record_resolution:int = bsi[board_kind]["record_resolution"]
+        self.max_npt_pretrig_length:int = bsi[board_kind]["max_npt_pretrig_length"]
+        self._samples_per_timestamp:dict = bsi[board_kind]["samples_per_timestamp"]
+        self._channel_configs:list = bsi[board_kind]["channel_configs"]
+        self._sample_rates:list = bsi[board_kind]["sample_rates"]
+        self._external_trigger_ranges:list = bsi[board_kind]["external_trigger_levels"]
+        self._external_clock_frequency_limits:dict = bsi[board_kind]["external_clock_frequency_limits"]
+
+    @property
+    def input_impedances(self):
+        imp_keys = self._input_ranges.keys()
+        imp_values = []
+        for key in imp_keys:
+            imp_values.append(int(re.findall(r"\d+", key)[0]))
+        return [Impedances.from_ohms(f) for f in imp_values]
+    
+    def input_ranges(self, impedance:Impedances) -> list[InputRanges]:
+        ranges = self._input_ranges[f"{impedance.in_ohms}ohm"]
+        ranges_v = []
+        for r in ranges:
+            v,u = re.findall(r"±(\d+)(mV|V)", r)[0]
+            if u == "mV":
+                ranges_v.append(float(v)*1e-3)
+            elif u == "V":
+                ranges_v.append(float(v))
+        return [InputRanges.from_v(v) for v in ranges_v]
+    
+    def samples_per_timestamp(self, active_channels:int):
+        if active_channels == 1:
+            chan_str = "1channel"
+        else:
+            chan_str = str(active_channels) + "channels"
+
+        return self._samples_per_timestamp[chan_str]
+    
+    @property
+    def channel_configs(self):
+        code_values = []
+        for config in self._channel_configs:
+            code_value = 0
+            for i,b in enumerate(config):
+                code_value += 2**i*int(b)
+            code_values.append(code_value)
+        return code_values
+
+    @property
+    def sample_rates(self):
+        rates = self._sample_rates
+        rates_hz = []
+        for rate in rates:
+            v,u = re.findall(r"(\d+)(kS/s|MS/s)", rate)[0]
+            if u == "kS/s":
+                rates_hz.append(float(v)*1e3)
+            elif u == "MS/s":
+                rates_hz.append(float(v)*1e6)
+        return [SampleRates.from_hz(v) for v in rates_hz]
+    
+    @property
+    def external_trigger_ranges(self):
+        external_trigger_ranges = []
+        for etl in self._external_trigger_ranges:
+            if etl == "5 V":
+                external_trigger_ranges.append(ExternalTriggerRanges.ETR_5V)
+            elif etl == "1 V":
+                external_trigger_ranges.append(ExternalTriggerRanges.ETR_1V)
+            if etl == "TTL":
+                external_trigger_ranges.append(ExternalTriggerRanges.ETR_TTL)
+            if etl == "2.5 V":
+                external_trigger_ranges.append(ExternalTriggerRanges.ETR_2V5)
+        return external_trigger_ranges
+    
+    @property
+    def supported_clocks(self):
+        ext_clocks = [ClockSources.INTERNAL_CLOCK] # they all suport internal clock
+        for eclock in self._external_clock_frequency_limits.keys():
+            if eclock == "Fast":
+                ext_clocks.append(ClockSources.FAST_EXTERNAL_CLOCK)
+            elif eclock == "Medium":
+                ext_clocks.append(ClockSources.MEDIUM_EXTERNAL_CLOCK)
+            elif eclock == "Slow":
+                ext_clocks.append(ClockSources.SLOW_EXTERNAL_CLOCK)
+            elif eclock == "AC":
+                ext_clocks.append(ClockSources.EXTERNAL_CLOCK_AC)
+            elif eclock == "DC":
+                ext_clocks.append(ClockSources.EXTERNAL_CLOCK_DC)
+        return ext_clocks
+    
+    def external_clock_frequency_range(self, clock_source:ClockSources):
+        if clock_source == ClockSources.FAST_EXTERNAL_CLOCK:
+            return self._external_clock_frequency_limits['Fast']
+        elif clock_source == ClockSources.MEDIUM_EXTERNAL_CLOCK:
+            return self._external_clock_frequency_limits['Medium']
+        elif clock_source == ClockSources.SLOW_EXTERNAL_CLOCK:
+            return self._external_clock_frequency_limits['Slow']
+        elif clock_source == ClockSources.EXTERNAL_CLOCK_AC:
+            return self._external_clock_frequency_limits['AC']
+        elif clock_source == ClockSources.EXTERNAL_CLOCK_DC:
+            return self._external_clock_frequency_limits['DC']
 
 
 

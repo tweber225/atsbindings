@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atsbindings"
+version = "0.1.0"
+description = "Bindings for Alazar digitizer boards"
+authors = [{ name = "T. D. Weber", email = "tweber@mit.edu" }]
+dependencies = ["numpy>=1.21.0"]
