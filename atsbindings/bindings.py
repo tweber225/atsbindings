@@ -200,12 +200,12 @@ def get_board_by_system_id(system_id, board_id):
     return ats.AlazarGetBoardBySystemID(system_id, board_id)
 
 
-@ctypes_sig([c_void_p, c_uint32], restype=c_void_p)
+@ctypes_sig([c_void_p, c_uint32], restype=c_void_p, errcheck=None)
 def alloc_buffer_u8(board_handle, size_bytes):
     return ats.AlazarAllocBufferU8(board_handle, size_bytes)
 
 
-@ctypes_sig([c_void_p, c_uint32], restype=c_void_p)
+@ctypes_sig([c_void_p, c_uint32], restype=c_void_p, errcheck=None)
 def alloc_buffer_u16(board_handle, size_bytes):
     return ats.AlazarAllocBufferU16(board_handle, size_bytes)
 
@@ -284,6 +284,7 @@ class Board:
                           records_per_buffer, records_per_acquisition, flags):
         """
         Configure board to make an asynchronous AutoDMA acquisition. 
+        0x7FFFFFFF codes for unlimited records per acquisition.
         """
         ats.AlazarBeforeAsyncRead(self._handle, channels, transfer_offset, 
                                   samples_per_record, records_per_buffer, 
@@ -297,11 +298,11 @@ class Board:
         return ats.AlazarBusy(self._handle) > 0
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32])
-    def configure_aux_io(self, mode, parameter):
+    def configure_aux_io(self, mode:AuxIOModes, parameter):
         """
         Configures the AUX I/O connector as an input or output signal.
         """
-        ats.AlazarConfigureAuxIO(self._handle, mode, parameter)
+        ats.AlazarConfigureAuxIO(self._handle, mode.value, parameter)
     
     @ctypes_sig([c_void_p], errcheck=None)
     def get_board_kind(self):
@@ -319,6 +320,14 @@ class Board:
         minor = c_byte(0)
         ats.AlazarGetBoardRevision(self._handle, byref(major), byref(minor))
         return (major.value, minor.value)
+    
+    @ctypes_sig([c_void_p, c_void_p, c_void_p])
+    def get_channel_info(self):
+        '''Get the on-board memory in samples per channe and sample size in bits per sample'''
+        memory_size = c_uint32(0)
+        bits_per_sample = c_uint8(0)
+        ats.AlazarGetChannelInfo(self._handle, byref(memory_size), byref(bits_per_sample))
+        return (memory_size.value, bits_per_sample.value)
 
     @ctypes_sig([c_void_p, POINTER(c_byte), POINTER(c_byte)])
     def get_cpld_version(self):
@@ -335,12 +344,13 @@ class Board:
         return (major.value, minor.value)
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32, c_uint32, c_uint32])
-    def input_control_ex(self, channel, coupling, input_range, impedance):
+    def input_control_ex(self, channel:Channels, coupling:Couplings, 
+                         input_range:InputRanges, impedance:Impedances):
         """
         Select the input coupling, range and impedance of a digitizer channel. 
         """
-        ats.AlazarInputControlEx(self._handle, channel, coupling, input_range, 
-                                 impedance)
+        ats.AlazarInputControlEx(self._handle, channel.value, coupling.value, 
+                                 input_range.value, impedance.value)
 
     @ctypes_sig([c_void_p, c_void_p, c_uint32])
     def post_async_buffer(self, buffer, bufferLength):
@@ -360,12 +370,19 @@ class Board:
         return retval.value
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32, c_uint32, c_uint32])
-    def set_capture_clock(self, source, rate, edge, decimation):
+    def set_capture_clock(self, source, rate, 
+                          edge=ClockEdges.CLOCK_EDGE_RISING, decimation=0):
         """
         Configure the sample clock source, edge and decimation. 
         """
-        rate = int(rate)
-        ats.AlazarSetCaptureClock(self._handle, source, rate, edge, decimation)
+        eclks = [
+            ClockSources.FAST_EXTERNAL_CLOCK, 
+            ClockSources.MEDIUM_EXTERNAL_CLOCK, 
+            ClockSources.SLOW_EXTERNAL_CLOCK
+        ]
+        if source in eclks:
+            rate = SampleRates.SAMPLE_RATE_USER_DEF
+        ats.AlazarSetCaptureClock(self._handle, source.value, rate.value, edge.value, decimation)
 
     @ctypes_sig([c_void_p, c_float])
     def set_external_clock_level(self, level_percent:float):
@@ -375,11 +392,11 @@ class Board:
         ats.AlazarSetExternalClockLevel(self._handle, level_percent)
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32])
-    def set_external_trigger(self, coupling, range):
+    def set_external_trigger(self, coupling:Couplings, range:ExternalTriggerRanges):
         """
         Set the external trigger range and coupling. 
         """
-        ats.AlazarSetExternalTrigger(self._handle, coupling, range)
+        ats.AlazarSetExternalTrigger(self._handle, coupling.value, range.value)
 
     @ctypes_sig([c_void_p, c_uint32])
     def set_led(self, led_state:LED):
@@ -407,23 +424,25 @@ class Board:
     @ctypes_sig([c_void_p, c_uint32, 
                  c_uint32, c_uint32, c_uint32, c_uint32,
                  c_uint32, c_uint32, c_uint32, c_uint32])        
-    def set_trigger_operation(self, operation,
-                              engine1, source1, slope1, level1,
-                              engine2, source2, slope2, level2):
+    def set_trigger_operation(self, operation:TriggerOperations,
+                              engine1:TriggerEngines, source1:TriggerSources,
+                              slope1:TriggerSlopes, level1:int,
+                              engine2:TriggerEngines, source2:TriggerSources, 
+                              slope2:TriggerSlopes, level2:int):
         """
         Configures the trigger system. 
         """
         ats.AlazarSetTriggerOperation(
-            self._handle, operation,
-            engine1, source1, slope1, level1,
-            engine2, source2, slope2, level2
+            self._handle, operation.value,
+            engine1.value, source1.value, slope1.value, level1,
+            engine2.value, source2.value, slope2.value, level2
         )
             
     @ctypes_sig([c_void_p, c_uint32])
     def set_trigger_time_out(self, timeout_ticks):
         """
-        Set the time to wait for a trigger event before automatically 
-        generating a trigger event. 
+        Set the time in ticks (10 us) to wait for a trigger event before 
+        automatically generating a trigger event. Enter 0 to wait forever.
         """
         ats.AlazarSetTriggerTimeOut(self._handle, timeout_ticks)
 
@@ -433,7 +452,7 @@ class Board:
         ats.AlazarStartCapture(self._handle)
 
     @ctypes_sig([c_void_p, c_void_p, c_uint32])
-    def wait_async_buffer_complete(self, buffer, timeout_ms):
+    def wait_async_buffer_complete(self, buffer, timeout_ms=10_000):
         """
         This function returns when a board has received sufficient triggers 
         to fill the specified buffer, or when the timeout internal elapses. 

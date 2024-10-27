@@ -54,6 +54,7 @@ class SampleRates(Enum):
     SAMPLE_RATE_3000MSPS = 0x75
     SAMPLE_RATE_3600MSPS = 0x7B
     SAMPLE_RATE_4000MSPS = 0x80
+    SAMPLE_RATE_USER_DEF = 0x40
 
     # Class method to find the enum by Hz value
     @classmethod
@@ -145,12 +146,20 @@ class Channels(Enum):
     CHANNEL_O = 16384
     CHANNEL_P = 32768
 
+    @classmethod
+    def from_int(cls, i):
+        c = chr(i + ord('A'))
+        return getattr(cls, "CHANNEL_"+c)
+
 
 class ADMAModes(Enum):
     ADMA_TRADITIONAL_MODE = 0
-    ADMA_NPT = 0x200
     ADMA_CONTINUOUS_MODE = 0x100
+    ADMA_NPT = 0x200
     ADMA_TRIGGERED_STREAMING = 0x400
+
+
+class ADMAFlags(Enum):
     ADMA_EXTERNAL_STARTCAPTURE = 0x1
     ADMA_ENABLE_RECORD_HEADERS = 0x8
     ADMA_ALLOC_BUFFERS = 0x20
@@ -159,6 +168,7 @@ class ADMAModes(Enum):
     ADMA_GET_PROCESSED_DATA = 0x2000
     ADMA_DSP = 0x4000
     ADMA_ENABLE_RECORD_FOOTERS = 0x10000
+    ADMA_PARALLEL_DMA = 0x20000
 
 
 class AuxInputLevels(Enum):

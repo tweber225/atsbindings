@@ -1,5 +1,5 @@
 from atsbindings.bindings import Board
-
+from atsbindings.enumerations import Capabilities
 
 # Initialize first board/subsystem and report the model number ('kind')
 board = Board()
