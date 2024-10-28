@@ -125,9 +125,11 @@ class BoardSpecificInfo:
             return self._external_clock_frequency_limits['DC']
 
 
-
-# Load the ATS API
-ats = ctypes.CDLL("ATSApi.dll")
+try:
+    # Load the ATS API
+    ats = ctypes.CDLL("ATSApi.dll")
+except OSError as e:
+    raise RuntimeError(f"Failed to load ATSApi.dll: {e}")
 
 
 # Define error checking function
