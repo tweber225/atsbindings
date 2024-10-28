@@ -129,7 +129,7 @@ try:
     # Load the ATS API
     ats = ctypes.CDLL("ATSApi.dll")
 except OSError as e:
-    raise RuntimeError(f"Failed to load ATSApi.dll: {e}")
+    raise RuntimeError(f"Could not find 'ATSApi.dll'. Check whether Alazar software is properly installed.")
 
 
 # Define error checking function
