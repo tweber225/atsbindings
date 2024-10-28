@@ -1,15 +1,7 @@
 import numpy as np
 import time
 
-from atsbindings.bindings import Board, Buffer
-from atsbindings.enumerations import (
-    ClockSources, SampleRates, 
-    Channels, Couplings, InputRanges, Impedances,
-    TriggerOperations, TriggerEngines, TriggerSources, TriggerSlopes,
-    ExternalTriggerRanges,
-    AuxIOModes, 
-    ADMAModes, ADMAFlags
-)
+from atsbindings import Board, Buffer, At
 
 
 # Parameters
@@ -25,35 +17,35 @@ buffer_count = 16
 board = Board()
 
 board.set_capture_clock(
-    source=ClockSources.INTERNAL_CLOCK,
-    rate=SampleRates.from_hz(sample_rate)
+    source=At.ClockSources.INTERNAL_CLOCK,
+    rate=At.SampleRates.from_hz(sample_rate)
 )
 
 nchannels_present = len(channels)
 nchannels_active = sum(channels)
 for i in range(nchannels_present):
     board.input_control_ex(
-        channel=Channels.from_int(i),
-        coupling=Couplings.DC_COUPLING,
-        input_range=InputRanges.from_v(input_ranges[i]),
-        impedance=Impedances.IMPEDANCE_50_OHM,
+        channel=At.Channels.from_int(i),
+        coupling=At.Couplings.DC_COUPLING,
+        input_range=At.InputRanges.from_v(input_ranges[i]),
+        impedance=At.Impedances.IMPEDANCE_50_OHM,
     )
 
 board.set_trigger_operation(
-    operation=TriggerOperations.TRIG_ENGINE_OP_J,
-    engine1=TriggerEngines.TRIG_ENGINE_J,
-    source1=TriggerSources.TRIG_EXTERNAL,
-    slope1=TriggerSlopes.TRIGGER_SLOPE_POSITIVE,
+    operation=At.TriggerOperations.TRIG_ENGINE_OP_J,
+    engine1=At.TriggerEngines.TRIG_ENGINE_J,
+    source1=At.TriggerSources.TRIG_EXTERNAL,
+    slope1=At.TriggerSlopes.TRIGGER_SLOPE_POSITIVE,
     level1=192,
-    engine2=TriggerEngines.TRIG_ENGINE_K,
-    source2=TriggerSources.TRIG_DISABLE,
-    slope2=TriggerSlopes.TRIGGER_SLOPE_POSITIVE,
+    engine2=At.TriggerEngines.TRIG_ENGINE_K,
+    source2=At.TriggerSources.TRIG_DISABLE,
+    slope2=At.TriggerSlopes.TRIGGER_SLOPE_POSITIVE,
     level2=192
 )
 
 board.set_external_trigger(
-    coupling=Couplings.DC_COUPLING,
-    range=ExternalTriggerRanges.ETR_5V
+    coupling=At.Couplings.DC_COUPLING,
+    range=At.ExternalTriggerRanges.ETR_5V
 )
 
 board.set_trigger_time_out(0)
@@ -61,7 +53,7 @@ board.set_trigger_time_out(0)
 board.set_trigger_delay(0)
 
 board.configure_aux_io(
-    mode=AuxIOModes.AUX_OUT_TRIGGER,
+    mode=At.AuxIOModes.AUX_OUT_TRIGGER,
     parameter=0
 )
 
@@ -82,9 +74,9 @@ for _ in range(buffer_count):
 # Get board ready for acquisition
 board.set_record_size(pre_trigger_samples=0, post_trigger_samples=samples_per_record)
 
-channel_mask = [c*Channels.from_int(i).value for i,c in enumerate(channels)]
+channel_mask = [c*At.Channels.from_int(i).value for i,c in enumerate(channels)]
 channel_mask = sum(channel_mask)
-flags = ADMAModes.ADMA_TRADITIONAL_MODE.value | ADMAFlags.ADMA_EXTERNAL_STARTCAPTURE.value 
+flags = At.ADMAModes.ADMA_TRADITIONAL_MODE.value | At.ADMAFlags.ADMA_EXTERNAL_STARTCAPTURE.value 
 board.before_async_read(
     channels=channel_mask,
     transfer_offset=0, # pre-trigger values

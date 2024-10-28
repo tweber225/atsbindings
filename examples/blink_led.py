@@ -1,7 +1,6 @@
 import time
 
-from atsbindings.bindings import Board
-from atsbindings.enumerations import LED
+from atsbindings import Board, At
 
 
 # Blink LED is the "hello world" equivalent for hardware
@@ -16,7 +15,7 @@ board = Board()
 t0 = time.perf_counter()
 
 while (time.perf_counter() - t0) < blinking_duration:
-    board.set_led(LED.LED_ON)
+    board.set_led(At.LED.LED_ON)
     time.sleep(blink_period/2)
-    board.set_led(LED.LED_OFF)
+    board.set_led(At.LED.LED_OFF)
     time.sleep(blink_period/2)
