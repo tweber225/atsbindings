@@ -4,7 +4,8 @@ from atsbindings import Board, Ats
 
 
 # Blink LED is the "hello world" equivalent for hardware.
-# Recommended using this as an initial test.
+# 
+# Note: ATS9870 - LED stays illuminated always, does not blink
 
 # Adjustable parameters
 blink_period = 0.33 # seconds
@@ -12,7 +13,8 @@ blinking_duration = 5 # seconds
 
 board = Board()
 
-print(f"Blinking will continue for {blinking_duration:.1f} seconds. \nStarting...")
+print(f"Blinking will continue for {blinking_duration:.1f} seconds.")
+print("Starting...")
 
 t0 = time.perf_counter()
 while (time.perf_counter() - t0) < blinking_duration:

@@ -4,7 +4,7 @@ from atsbindings import Board, Buffer, Ats
 # Parameters
 channels = [True, True] # [channel A, channel B, etc] (extend for >2 channel boards)
 input_ranges = [2.0, 2.0] # +/- V (match size of channels list) (must match ones of the available ranges)
-sample_rate = 10e6 # must match one of the available internally generated sample rates
+sample_rate = 20e6 # must match one of the available internally generated sample rates
 samples_per_record = 1024
 records_per_buffer = 128
 buffers_to_acquire = 128

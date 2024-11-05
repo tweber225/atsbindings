@@ -1,10 +1,11 @@
-from atsbindings import Board
+from atsbindings import Board, Ats
 
 
 # Initialize first board/subsystem and report the model number ('kind')
 board = Board()
 board_kind = board.get_board_kind()
-print(f"Board model: {board_kind.name}")
+sn = board.query_capability(Ats.Capabilities.GET_SERIAL_NUMBER)
+print(f"Board model: {board_kind.name} (S/N: {sn})")
 
 # Get board specific info
 bsi = board.bsi

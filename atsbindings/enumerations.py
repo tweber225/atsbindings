@@ -472,7 +472,7 @@ class AuxIOModes(Enum):
 
 
 class HEADER0(Structure):
-    # Note: many of these do not return non-zero
+    # Note: many of these return zero
     _fields_ = [
         ("SerialNumber", c_uint, 18),       # bits 17..0
         ("SystemNumber", c_uint, 4),        # bits 21..18
