@@ -1,41 +1,41 @@
 [ATS310]
 channels = 2
-input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V,\n±5V", "±8V", "±10V", "±20V",] }
+input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V", "±20V",] }
 min_record_size = 256
 pretrig_alignment = 4
 record_resolution = 16
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s,\n10MS/s", "20MS/s",]
+sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
-external_clock_frequency_limits = { Fast = [ "None", 20000000,] }
+external_clock_frequency_limits = { Fast = [ 0, 20000000,] }
 
 [ATS330]
 channels = 2
-input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V,\n±5V", "±8V", "±10V", "±20V",] }
+input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V", "±20V",] }
 min_record_size = 256
 pretrig_alignment = 4
 record_resolution = 16
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s,\n10MS/s", "25MS/s", "50MS/s",]
+sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
-external_clock_frequency_limits = { Fast = [ "None", 50000000,] }
+external_clock_frequency_limits = { Fast = [ 0, 50000000,] }
 
 [ATS460]
 channels = 2
-input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V", "±5V", "±8V", "±10V",] }
+input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V",] }
 min_record_size = 128
 pretrig_alignment = 16
 record_resolution = 16
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
-external_clock_frequency_limits = { Fast = [ 80000000, 125000000,], Medium = [ 10000000, 80000000,], Slow = [ "None", 10000000,] }
+external_clock_frequency_limits = { Fast = [ 80000000, 125000000,], Medium = [ 10000000, 80000000,], Slow = [ 0, 10000000,] }
 
 [ATS660]
 channels = 2
@@ -46,85 +46,85 @@ record_resolution = 16
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
-external_clock_frequency_limits = { Slow = [ "None", 10000000,], AC = [ 1000, 125000000,], DC = [ 1000, 125000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 10000000,], AC = [ 1000, 125000000,], DC = [ 1000, 125000000,] }
 
 [ATS850]
 channels = 2
-input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V", "±5V", "±8V", "±10V",] }
+input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V",] }
 min_record_size = 256
 pretrig_alignment = 4
 record_resolution = 16
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s,\n10MS/s", "25MS/s", "50MS/s",]
+sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
 external_clock_frequency_limits = {  }
 
 [ATS860]
 channels = 4
-input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V", "±5V", "±8V", "±10V",] }
+input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V",] }
 min_record_size = 256
 pretrig_alignment = 32
 record_resolution = 32
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 4, 2channels = 2, 4channels = 1 }
 channel_configs = [ "1000", "0100", "1100", "0010", "1010", "0110", "0001", "1001", "0101", "0011", "1111",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
-external_clock_frequency_limits = { Fast = [ 20000000, 250000000,], Slow = [ "None", 250000000,] }
+external_clock_frequency_limits = { Fast = [ 20000000, 250000000,], Slow = [ 0, 250000000,] }
 
 [ATS9120]
 channels = 2
-input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V,\n±5V", "±8V", "±10V", "±20V",] }
+input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V", "±20V",] }
 min_record_size = 256
 pretrig_alignment = 32
 record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s,\n10MS/s", "20MS/s",]
+sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { Fast = [ 1000000, 20000000,] }
 
 [ATS9130]
 channels = 2
-input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V,\n±5V", "±8V", "±10V", "±20V",] }
+input_ranges = { 50ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V", "±20V",] }
 min_record_size = 256
 pretrig_alignment = 32
 record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s,\n10MS/s", "25MS/s", "50MS/s",]
+sample_rates = [ "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { Fast = [ 1000000, 50000000,] }
 
 [ATS9146]
 channels = 2
-input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V", "±5V", "±8V", "±10V",] }
+input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V",] }
 min_record_size = 256
 pretrig_alignment = 32
 record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { Fast = [ 10000000, 125000000,], Slow = [ 1000, 10000000,] }
 
 [ATS9182]
 channels = 2
-input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V,\n±2V", "±4V", "±5V", "±8V", "±10V",] }
+input_ranges = { 50ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V",], 1000000ohm = [ "±20mV", "±40mV", "±50mV", "±80mV", "±100mV", "±200mV", "±400mV", "±500mV", "±800mV", "±1V", "±2V", "±4V", "±5V", "±8V", "±10V",] }
 min_record_size = 512
 pretrig_alignment = 64
 record_resolution = 64
 max_npt_pretrig_length = 8160
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "25MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { Fast = [ 20000000, 250000000,], Slow = [ 1000, 10000000,] }
 
@@ -137,9 +137,9 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s,\n500MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s", "500MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
-external_clock_frequency_limits = { Slow = [ "None", 20000000,], AC = [ 1000000, 500000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 20000000,], AC = [ 1000000, 500000000,] }
 
 [ATS9351]
 channels = 2
@@ -150,9 +150,9 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s,\n500MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s", "500MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
-external_clock_frequency_limits = { Slow = [ "None", 20000000,], AC = [ 1000000, 500000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 20000000,], AC = [ 1000000, 500000000,] }
 
 [ATS9352]
 channels = 2
@@ -163,9 +163,9 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s,\n500MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s", "500MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
-external_clock_frequency_limits = { Slow = [ "None", 20000000,], AC = [ 1000000, 500000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 20000000,], AC = [ 1000000, 500000000,] }
 
 [ATS9353]
 channels = 2
@@ -176,9 +176,9 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 8, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s,\n500MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s", "500MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
-external_clock_frequency_limits = { Slow = [ "None", 20000000,], AC = [ 1000000, 500000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 20000000,], AC = [ 1000000, 500000000,] }
 
 [ATS9360]
 channels = 2
@@ -189,7 +189,7 @@ record_resolution = 128
 max_npt_pretrig_length = 8176
 samples_per_timestamp = { 1channel = 16, 2channels = 8 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s,\n800MS/s", "1000MS/s", "1200MS/s", "1500MS/s", "1800MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s", "800MS/s", "1000MS/s", "1200MS/s", "1500MS/s", "1800MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { AC = [ 300000000, 1800000000,] }
 
@@ -202,7 +202,7 @@ record_resolution = 128
 max_npt_pretrig_length = 8176
 samples_per_timestamp = { 1channel = 16, 2channels = 8 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s,\n800MS/s", "1000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s", "800MS/s", "1000MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { AC = [ 300000000, 1000000000,] }
 
@@ -215,7 +215,7 @@ record_resolution = 128
 max_npt_pretrig_length = 8176
 samples_per_timestamp = { 1channel = 16, 2channels = 8 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s,\n800MS/s", "1000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s", "800MS/s", "1000MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { AC = [ 300000000, 1000000000,] }
 
@@ -228,7 +228,7 @@ record_resolution = 128
 max_npt_pretrig_length = 8176
 samples_per_timestamp = { 1channel = 16, 2channels = 8 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s,\n800MS/s", "1000MS/s", "1200MS/s", "1500MS/s", "2000MS/s", "2400MS/s", "3000MS/s,\n3600MS/s", "4000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "200MS/s", "500MS/s", "800MS/s", "1000MS/s", "1200MS/s", "1500MS/s", "2000MS/s", "2400MS/s", "3000MS/s", "3600MS/s", "4000MS/s",]
 external_trigger_levels = [ "2.5 V", "TTL",]
 external_clock_frequency_limits = { AC = [ 300000000, 2000000000,] }
 
@@ -254,7 +254,7 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 4, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
 external_trigger_levels = [ "TTL",]
 external_clock_frequency_limits = { AC = [ 50000000, 250000000,] }
 
@@ -267,9 +267,9 @@ record_resolution = 32
 max_npt_pretrig_length = 2032
 samples_per_timestamp = { 1channel = 4, 2channels = 2, 4channels = 1 }
 channel_configs = [ "1000", "0100", "1100", "0010", "1010", "0110", "0001", "1001", "0101", "0011", "1111",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
-external_clock_frequency_limits = { Fast = [ 1000000, 125000000,], Slow = [ "None", 20000000,] }
+external_clock_frequency_limits = { Fast = [ 1000000, 125000000,], Slow = [ 0, 20000000,] }
 
 [ATS9462]
 channels = 2
@@ -280,9 +280,9 @@ record_resolution = 32
 max_npt_pretrig_length = 2032
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "160MS/s,\n180MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "160MS/s", "180MS/s",]
 external_trigger_levels = [ "1 V", "5 V",]
-external_clock_frequency_limits = { Slow = [ "None", 10000000,], AC = [ 1000000, 180000000,], DC = [ 1000000, 180000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 10000000,], AC = [ 1000000, 180000000,], DC = [ 1000000, 180000000,] }
 
 [ATS9625]
 channels = 2
@@ -293,7 +293,7 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
 external_trigger_levels = [ "TTL",]
 external_clock_frequency_limits = { AC = [ 50000000, 250000000,] }
 
@@ -306,7 +306,7 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 2, 2channels = 1 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
 external_trigger_levels = [ "TTL",]
 external_clock_frequency_limits = { AC = [ 50000000, 250000000,] }
 
@@ -319,7 +319,7 @@ record_resolution = 32
 max_npt_pretrig_length = 4080
 samples_per_timestamp = { 1channel = 4, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "125MS/s", "250MS/s",]
 external_trigger_levels = [ "TTL",]
 external_clock_frequency_limits = { AC = [ 50000000, 250000000,] }
 
@@ -332,9 +332,9 @@ record_resolution = 64
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 16, 2channels = 8 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s,\n1000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s", "1000MS/s",]
 external_trigger_levels = [ "5 V",]
-external_clock_frequency_limits = { Slow = [ "None", 60000000,], AC = [ 200000000, 1000000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 60000000,], AC = [ 200000000, 1000000000,] }
 
 [ATS9872]
 channels = 2
@@ -345,7 +345,7 @@ record_resolution = 64
 max_npt_pretrig_length = 8160
 samples_per_timestamp = { 1channel = 4, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s,\n1000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s", "1000MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
 external_clock_frequency_limits = {  }
 
@@ -358,7 +358,7 @@ record_resolution = 64
 max_npt_pretrig_length = 8160
 samples_per_timestamp = { 1channel = 4, 2channels = 4 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s,\n1000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s", "1000MS/s",]
 external_trigger_levels = [ "5 V", "TTL",]
 external_clock_frequency_limits = {  }
 
@@ -371,6 +371,6 @@ record_resolution = 64
 max_npt_pretrig_length = "N/A"
 samples_per_timestamp = { 1channel = 16, 2channels = 8 }
 channel_configs = [ "10", "01", "11",]
-sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s,\n1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s,\n1000MS/s",]
+sample_rates = [ "1kS/s", "2kS/s", "5kS/s", "10kS/s", "20kS/s", "50kS/s", "100kS/s", "200kS/s", "500kS/s", "1MS/s", "2MS/s", "5MS/s", "10MS/s", "20MS/s", "50MS/s", "100MS/s", "250MS/s", "500MS/s", "1000MS/s",]
 external_trigger_levels = [ "5 V",]
-external_clock_frequency_limits = { Slow = [ "None", 60000000,], AC = [ 200000000, 1000000000,] }
+external_clock_frequency_limits = { Slow = [ 0, 60000000,], AC = [ 200000000, 1000000000,] }

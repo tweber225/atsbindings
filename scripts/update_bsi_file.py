@@ -30,7 +30,7 @@ for dt, dd in zip(impedance_section.find_all('dt'), impedance_section.find_all('
     entries = [entry.strip() for entry in dt.get_text().split(',')]
 
     # Get the input ranges from the <dd> tag
-    ranges = [r.strip() for r in dd.get_text().split(', ')]
+    ranges = [r.strip() for r in dd.get_text().split(',')]
 
     # For each entry, split it into model and impedance
     pattern = r"(\d+)(MΩ|Ω)"
@@ -88,7 +88,8 @@ for dt, dd in zip(sample_rate_section.find_all('dt'), sample_rate_section.find_a
     models = [model.strip() for model in dt.get_text().split(',')]
 
     # Get the sample rates from the <dd> tag
-    rates = dd.get_text().strip().split(', ')
+    rates = dd.get_text().strip().split(',')
+    rates = [r.strip() for r in rates]
 
     # Store the sample rates for each model
     for model in models:
@@ -213,7 +214,7 @@ for row in rows:
         high_freq = cells[2 + 2 * i].get_text().strip()  # High frequency column
         
         # Store only if there is a valid value
-        if low_freq or high_freq:
+        if low_freq and high_freq:
 
             if low_freq[-1] == "k":
                 low_freq = int(float(low_freq[:-1])*1e3)
@@ -225,7 +226,7 @@ for row in rows:
                 high_freq = int(float(high_freq)*1e6)
 
             external_clock_frequency_limits[board_name][clock_type] = [
-                low_freq if low_freq else None, high_freq if high_freq else None
+                low_freq, high_freq 
             ]
 
 

@@ -1,5 +1,5 @@
-from enum import Enum
-
+from enum import Enum, IntEnum
+from ctypes import Structure, c_uint32, c_uint
 
 
 class ClockSources(Enum):
@@ -127,7 +127,7 @@ class ClockEdges(Enum):
     CLOCK_EDGE_FALLING = 1
 
 
-class Channels(Enum):
+class Channels(IntEnum):
     CHANNEL_ALL = 0 # Untested
     CHANNEL_A = 1
     CHANNEL_B = 2
@@ -152,14 +152,14 @@ class Channels(Enum):
         return getattr(cls, "CHANNEL_"+c)
 
 
-class ADMAModes(Enum):
+class ADMAModes(IntEnum):
     ADMA_TRADITIONAL_MODE = 0
     ADMA_CONTINUOUS_MODE = 0x100
     ADMA_NPT = 0x200
     ADMA_TRIGGERED_STREAMING = 0x400
 
 
-class ADMAFlags(Enum):
+class ADMAFlags(IntEnum):
     ADMA_EXTERNAL_STARTCAPTURE = 0x1
     ADMA_ENABLE_RECORD_HEADERS = 0x8
     ADMA_ALLOC_BUFFERS = 0x20
@@ -441,6 +441,13 @@ class Impedances(Enum):
             return 75
         if self.value == 8:
             return 300
+        
+    def __str__(self):
+        r = self.in_ohms
+        if r == 1e6:
+            return f"1 Mohm"
+        else:
+            return f"{int(r)} ohm"
 
 
 class ExternalTriggerRanges(Enum):
@@ -462,3 +469,51 @@ class AuxIOModes(Enum):
     AUX_OUT_PACER = 2
     AUX_IN_AUXILIARY = 13
     AUX_OUT_SERIAL_DATA = 14
+
+
+class HEADER0(Structure):
+    # Note: many of these do not return non-zero
+    _fields_ = [
+        ("SerialNumber", c_uint, 18),       # bits 17..0
+        ("SystemNumber", c_uint, 4),        # bits 21..18
+        ("WhichChannel", c_uint, 1),        # bit 22
+        ("BoardNumber", c_uint, 4),         # bits 26..23
+        ("SampleResolution", c_uint, 3),    # bits 29..27
+        ("DataFormat", c_uint, 2)           # bits 31..30
+    ]
+
+class HEADER1(Structure):
+    _fields_ = [
+        ("RecordNumber", c_uint, 24),       # bits 23..0
+        ("BoardType", c_uint, 8)            # bits 31..24
+    ]
+
+class HEADER2(Structure):
+    _fields_ = [
+        ("TimeStampLowPart", c_uint32)      # bits 31..0
+    ]
+
+class HEADER3(Structure):
+    _fields_ = [
+        ("TimeStampHighPart", c_uint, 8),   # bits 7..0
+        ("ClockSource", c_uint, 2),         # bits 9..8
+        ("ClockEdge", c_uint, 1),           # bit 10
+        ("SampleRate", c_uint, 7),          # bits 17..11
+        ("InputRange", c_uint, 5),          # bits 22..18
+        ("InputCoupling", c_uint, 2),       # bits 24..23
+        ("InputImpedance", c_uint, 2),      # bits 26..25
+        ("ExternalTriggered", c_uint, 1),   # bit 27
+        ("ChannelBTriggered", c_uint, 1),   # bit 28
+        ("ChannelATriggered", c_uint, 1),   # bit 29
+        ("TimeOutOccurred", c_uint, 1),     # bit 30
+        ("ThisChannelTriggered", c_uint, 1) # bit 31
+    ]
+
+class ALAZAR_HEADER(Structure):
+    _fields_ = [
+        ("hdr0", HEADER0),
+        ("hdr1", HEADER1),
+        ("hdr2", HEADER2),
+        ("hdr3", HEADER3)
+    ]
+

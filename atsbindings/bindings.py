@@ -2,16 +2,39 @@ from pathlib import Path
 import tomllib
 import re
 import ctypes
+from functools import cached_property
 from ctypes import (byref, POINTER, c_byte, c_char_p, c_uint8, c_uint16, 
-                    c_uint32, c_void_p, c_long, c_float)
+                    c_uint32, c_void_p, c_long, c_float, cast, create_string_buffer,
+                    sizeof)
 
 import numpy as np
 
-from atsbindings.enumerations import *
+from .enumerations import *
 
+
+class Frequency(float):
+    """Subclass of float to allow automatic string formatting."""
+    def __new__(cls, value):
+        return super().__new__(cls, value)
+    
+    def __str__(self):
+        if self > 1e6:
+            return f"{self/1e6:.1f} MHz"
+        elif self > 1e3:
+            return f"{self/1e3:.1f} kHz"
+        else:
+            return f"{self:.1f} Hz"
+
+
+class ExternalClockFrequencyRange:
+    """Class to maintain min and max frequencies, i.e. a frequency range"""
+    def __init__(self, min_hz, max_hz):
+        self.min = Frequency(min_hz)
+        self.max = Frequency(max_hz)
 
 
 class BoardSpecificInfo:
+    """Class to maintain board-specific information. When possible API enumerations are stored/returned."""
     def __init__(self, board_kind):
         if hasattr(board_kind, "name"):
             board_kind = board_kind.name
@@ -22,42 +45,50 @@ class BoardSpecificInfo:
             bsi = tomllib.load(f)
 
         self.channels:int = bsi[board_kind]["channels"]
-        self._input_ranges:dict = bsi[board_kind]["input_ranges"]
+        self._set_input_ranges(bsi[board_kind]["input_ranges"]) # available input range depends on input impedance, so this property is more complicated
         self.min_record_size:int = bsi[board_kind]["min_record_size"]
         self.pretrig_alignment:int = bsi[board_kind]["pretrig_alignment"]
         self.record_resolution:int = bsi[board_kind]["record_resolution"]
         self.max_npt_pretrig_length:int = bsi[board_kind]["max_npt_pretrig_length"]
         self._samples_per_timestamp:dict = bsi[board_kind]["samples_per_timestamp"]
         self._channel_configs:list = bsi[board_kind]["channel_configs"]
-        self._sample_rates:list = bsi[board_kind]["sample_rates"]
-        self._external_trigger_ranges:list = bsi[board_kind]["external_trigger_levels"]
-        self._external_clock_frequency_limits:dict = bsi[board_kind]["external_clock_frequency_limits"]
+        self.sample_rates:list = bsi[board_kind]["sample_rates"]
+        self.external_trigger_ranges:list = bsi[board_kind]["external_trigger_levels"]
+        self._set_external_clock_frequency_ranges(bsi[board_kind]["external_clock_frequency_limits"])
+
+    def _set_input_ranges(self, input_impedance_ranges_dict:dict):
+        self._input_impedances_ranges = {}
+        for key in input_impedance_ranges_dict.keys():
+            v,u = re.findall(r"(\d+)(ohm|Mohm)", key)[0]
+            v = int(v)
+            if u == "Mohm":
+                v *= 1e6
+            impedance = Impedances.from_ohms(v)
+
+            ranges = []
+            for r in input_impedance_ranges_dict[key]:
+                v,u = re.findall(r"±(\d+)(mV|V)", r)[0]
+                if u == "mV":
+                    ranges.append(InputRanges.from_v(float(v)*1e-3))
+                elif u == "V":
+                    ranges.append(InputRanges.from_v(float(v)))
+            self._input_impedances_ranges.update({impedance: ranges})
 
     @property
     def input_impedances(self):
-        imp_keys = self._input_ranges.keys()
-        imp_values = []
-        for key in imp_keys:
-            imp_values.append(int(re.findall(r"\d+", key)[0]))
-        return [Impedances.from_ohms(f) for f in imp_values]
+        """Returns a list of the available input impedances."""
+        return list(self._input_impedances_ranges.keys())
     
     def input_ranges(self, impedance:Impedances) -> list[InputRanges]:
-        ranges = self._input_ranges[f"{impedance.in_ohms}ohm"]
-        ranges_v = []
-        for r in ranges:
-            v,u = re.findall(r"±(\d+)(mV|V)", r)[0]
-            if u == "mV":
-                ranges_v.append(float(v)*1e-3)
-            elif u == "V":
-                ranges_v.append(float(v))
-        return [InputRanges.from_v(v) for v in ranges_v]
+        """Returns list of input ranges for the given input impedance."""
+        return self._input_impedances_ranges[impedance]
     
     def samples_per_timestamp(self, active_channels:int):
+        """Returns the number of sample clock periods per timestamp increment. Depends on the number of active channels"""
         if active_channels == 1:
             chan_str = "1channel"
         else:
             chan_str = str(active_channels) + "channels"
-
         return self._samples_per_timestamp[chan_str]
     
     @property
@@ -72,61 +103,64 @@ class BoardSpecificInfo:
 
     @property
     def sample_rates(self):
-        rates = self._sample_rates
-        rates_hz = []
+        return self._sample_rates
+    
+    @sample_rates.setter
+    def sample_rates(self, rates):
+        self._sample_rates = []
         for rate in rates:
             v,u = re.findall(r"(\d+)(kS/s|MS/s)", rate)[0]
             if u == "kS/s":
-                rates_hz.append(float(v)*1e3)
+                self._sample_rates.append(SampleRates.from_hz(float(v)*1e3))
             elif u == "MS/s":
-                rates_hz.append(float(v)*1e6)
-        return [SampleRates.from_hz(v) for v in rates_hz]
+                self._sample_rates.append(SampleRates.from_hz(float(v)*1e6))
     
     @property
     def external_trigger_ranges(self):
-        external_trigger_ranges = []
-        for etl in self._external_trigger_ranges:
+        return self._external_trigger_ranges
+    
+    @external_trigger_ranges.setter
+    def external_trigger_ranges(self, ranges):
+        self._external_trigger_ranges = []
+        for etl in ranges:
             if etl == "5 V":
-                external_trigger_ranges.append(ExternalTriggerRanges.ETR_5V)
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_5V)
             elif etl == "1 V":
-                external_trigger_ranges.append(ExternalTriggerRanges.ETR_1V)
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_1V)
             if etl == "TTL":
-                external_trigger_ranges.append(ExternalTriggerRanges.ETR_TTL)
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_TTL)
             if etl == "2.5 V":
-                external_trigger_ranges.append(ExternalTriggerRanges.ETR_2V5)
-        return external_trigger_ranges
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_2V5)
     
+    def _set_external_clock_frequency_ranges(self, clock_ranges):
+        clocks = clock_ranges.keys()
+        self._external_clock_frequency_ranges = {}
+        for clock in clocks:
+            range = ExternalClockFrequencyRange(clock_ranges[clock][0], clock_ranges[clock][1])
+
+            if clock == "Fast":
+                clock = ClockSources.FAST_EXTERNAL_CLOCK
+            elif clock == "Medium":
+                clock = ClockSources.MEDIUM_EXTERNAL_CLOCK
+            elif clock == "Slow":
+                clock = ClockSources.SLOW_EXTERNAL_CLOCK
+            elif clock == "AC":
+                clock = ClockSources.EXTERNAL_CLOCK_AC
+            elif clock == "DC":
+                clock = ClockSources.EXTERNAL_CLOCK_DC
+
+            self._external_clock_frequency_ranges.update({clock : range})
+
     @property
-    def supported_clocks(self):
-        ext_clocks = [ClockSources.INTERNAL_CLOCK] # they all suport internal clock
-        for eclock in self._external_clock_frequency_limits.keys():
-            if eclock == "Fast":
-                ext_clocks.append(ClockSources.FAST_EXTERNAL_CLOCK)
-            elif eclock == "Medium":
-                ext_clocks.append(ClockSources.MEDIUM_EXTERNAL_CLOCK)
-            elif eclock == "Slow":
-                ext_clocks.append(ClockSources.SLOW_EXTERNAL_CLOCK)
-            elif eclock == "AC":
-                ext_clocks.append(ClockSources.EXTERNAL_CLOCK_AC)
-            elif eclock == "DC":
-                ext_clocks.append(ClockSources.EXTERNAL_CLOCK_DC)
-        return ext_clocks
+    def supported_external_clocks(self):
+        return list(self._external_clock_frequency_ranges.keys())
     
-    def external_clock_frequency_range(self, clock_source:ClockSources):
-        if clock_source == ClockSources.FAST_EXTERNAL_CLOCK:
-            return self._external_clock_frequency_limits['Fast']
-        elif clock_source == ClockSources.MEDIUM_EXTERNAL_CLOCK:
-            return self._external_clock_frequency_limits['Medium']
-        elif clock_source == ClockSources.SLOW_EXTERNAL_CLOCK:
-            return self._external_clock_frequency_limits['Slow']
-        elif clock_source == ClockSources.EXTERNAL_CLOCK_AC:
-            return self._external_clock_frequency_limits['AC']
-        elif clock_source == ClockSources.EXTERNAL_CLOCK_DC:
-            return self._external_clock_frequency_limits['DC']
+    def external_clock_frequency_ranges(self, clock_source:ClockSources):
+        return self._external_clock_frequency_ranges[clock_source]
 
 
+# Load the API DLL
 try:
-    # Load the ATS API
     ats = ctypes.CDLL("ATSApi.dll")
 except OSError as e:
     raise RuntimeError(f"Could not find 'ATSApi.dll'. Check whether Alazar software is properly installed.")
@@ -198,68 +232,107 @@ def boards_in_system_by_system_id(sid:int) -> int:
 
 
 @ctypes_sig([c_uint32, c_uint32], restype=c_void_p, errcheck=None)
-def get_board_by_system_id(system_id, board_id):
+def _get_board_by_system_id(system_id, board_id):
     return ats.AlazarGetBoardBySystemID(system_id, board_id)
 
 
 @ctypes_sig([c_void_p, c_uint32], restype=c_void_p, errcheck=None)
-def alloc_buffer_u8(board_handle, size_bytes):
+def _alloc_buffer_u8(board_handle, size_bytes):
     return ats.AlazarAllocBufferU8(board_handle, size_bytes)
 
 
 @ctypes_sig([c_void_p, c_uint32], restype=c_void_p, errcheck=None)
-def alloc_buffer_u16(board_handle, size_bytes):
+def _alloc_buffer_u16(board_handle, size_bytes):
     return ats.AlazarAllocBufferU16(board_handle, size_bytes)
 
 
 @ctypes_sig([c_void_p, c_void_p])
-def free_buffer_u8(board_handle, address):
+def _free_buffer_u8(board_handle, address):
     return ats.AlazarFreeBufferU8(board_handle, address)
 
 
 @ctypes_sig([c_void_p, c_void_p])
-def free_buffer_u16(board_handle, address):
+def _free_buffer_u16(board_handle, address):
     return ats.AlazarFreeBufferU16(board_handle, address)
-
+    
 
 class Buffer:
-    """
-    Buffer for AutoDMA transfers.
-    """
-    def __init__(self, board:'Board', bytes_per_sample:int, size_bytes:int):
-        self.size_bytes = size_bytes
-        self.bytes_per_sample = bytes_per_sample
-        self._board_handle = board._handle
+    def __init__(self, board:'Board', channels:int,
+                 records:int, samples_per_record:int, 
+                 include_header:bool=False, include_footer:bool=False):
+        self._board = board
+        self.include_header = include_header
 
-        self._addr = None
+        size = (channels * self.bytes_per_sample * samples_per_record 
+                + self.header_size * min(channels, 2)) * records
+            
+        self.address = None
         if self.bytes_per_sample == 1:
-            self._addr = alloc_buffer_u8(self._board_handle, size_bytes)
+            self.address = _alloc_buffer_u8(self._bhandle, size)
             c_sample_type = c_uint8
             np_dtype = np.uint8
         elif self.bytes_per_sample == 2:
-            self._addr = alloc_buffer_u16(self._board_handle, size_bytes)
+            self.address = _alloc_buffer_u16(self._bhandle, size)
             c_sample_type = c_uint16
             np_dtype = np.uint16
         else:
             raise ValueError("Invalid buffer data type")
 
-        if self._addr is None:
+        if self.address is None:
             raise ValueError("Error allocating buffer")
-
+        
         ctypes_array = (
-            c_sample_type * (size_bytes // bytes_per_sample)
-        ).from_address(self._addr)
+            c_sample_type * (size // self.bytes_per_sample)
+        ).from_address(self.address)
         
         self.buffer = np.frombuffer(ctypes_array, dtype=np_dtype)
+        self.buffer.shape = (records, channels, self.buffer.size//(records*channels))
 
-        # hold a reference to this array or else it will be garbage collected
-        self.ctypes_buffer = ctypes_array
+        self._ctypes_buffer = ctypes_array # hold ref to avoid GC
 
     def __del__(self):
         if self.bytes_per_sample == 1:
-            free_buffer_u8(self._board_handle, self._addr)
+            _free_buffer_u8(self._bhandle, self.address)
         elif self.bytes_per_sample == 2:
-            free_buffer_u16(self._board_handle, self._addr)
+            _free_buffer_u16(self._bhandle, self.address)
+
+    @cached_property
+    def size(self):
+        """Returns the buffer size in bytes"""
+        return sizeof(self._ctypes_buffer)
+
+    @property
+    def _bhandle(self):
+        return self._board._handle
+
+    @cached_property
+    def bytes_per_sample(self):
+        _, bits_per_sample = self._board.get_channel_info()
+        return (bits_per_sample + 7)//8
+    
+    @cached_property
+    def header_size(self):
+        return 16 if self.include_header else 0
+    
+    def get_headers(self) -> list[ALAZAR_HEADER]:
+        """Returns the ALAZAR_HEADER object from the first 16 bytes of the buffer."""
+        if not self.include_header:
+            return None
+
+        # Retrieve only the header associated with the first channel (2nd channel header is mostly redundant)
+        headers_bytes = [hb.tobytes() for hb in self.buffer[:,0,:16//self.bytes_per_sample]]
+
+        # Create a buffer and copy the data into it
+        buffers = [create_string_buffer(hb, 16) for hb in headers_bytes]
+        
+        # Cast and return dereferenced header structures
+        return [cast(b, POINTER(ALAZAR_HEADER)).contents for b in buffers]
+    
+    def get_data(self):
+        """Returns a copy of the buffer data, omitting and headers or footers."""
+        return np.array(
+            self.buffer[:, :, (self.header_size//self.bytes_per_sample):]
+        )
 
 
 class Board:
@@ -267,7 +340,7 @@ class Board:
         self._sid = system_id
         self._bid = board_id
 
-        self._handle = get_board_by_system_id(self._sid, self._bid)
+        self._handle = _get_board_by_system_id(self._sid, self._bid)
         if self._handle == 0:
             raise Exception(f"Board {self._sid}.{self._bid} not found")
         
@@ -355,11 +428,11 @@ class Board:
                                  input_range.value, impedance.value)
 
     @ctypes_sig([c_void_p, c_void_p, c_uint32])
-    def post_async_buffer(self, buffer, bufferLength):
+    def post_async_buffer(self, buffer, buffer_length):
         """
         Posts a DMA buffer to a board.
         """
-        ats.AlazarPostAsyncBuffer(self._handle, buffer, bufferLength)
+        ats.AlazarPostAsyncBuffer(self._handle, buffer, buffer_length)
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32, POINTER(c_uint32)])
     def query_capability(self, capability:Capabilities):
