@@ -135,7 +135,7 @@ print(f"Acquisition done")
 try:
     import matplotlib.pyplot as plt
 except:
-    print("Matplot lib not installed. Skipping plotting.")
+    print("Matplotlib not installed. Skipping plotting.")
     exit()
 
 fig,ax = plt.subplots()
