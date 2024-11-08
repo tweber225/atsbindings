@@ -18,9 +18,9 @@ class Frequency(float):
         return super().__new__(cls, value)
     
     def __str__(self):
-        if self > 1e6:
+        if self >= 1e6:
             return f"{self/1e6:.1f} MHz"
-        elif self > 1e3:
+        elif self >= 1e3:
             return f"{self/1e3:.1f} kHz"
         else:
             return f"{self:.1f} Hz"
@@ -258,13 +258,21 @@ def _free_buffer_u16(board_handle, address):
 
 class Buffer:
     def __init__(self, board:'Board', channels:int,
-                 records:int, samples_per_record:int, 
-                 include_header:bool=False, include_footer:bool=False):
+                 records_per_buffer:int, samples_per_record:int, 
+                 include_header:bool=False, include_footer:bool=False,
+                 interleave_samples:bool=False):
         self._board = board
+        self.channels = channels
+        self.records_per_buffer = records_per_buffer
+        self.samples_per_record = samples_per_record
         self.include_header = include_header
+        self.interleave_samples = interleave_samples
 
-        size = (channels * self.bytes_per_sample * samples_per_record 
-                + self.header_size * min(channels, 2)) * records
+        nheaders = min(channels,2) if interleave_samples else channels
+        size_per_record = (channels * self.bytes_per_sample * samples_per_record 
+                           + self.header_size * nheaders)
+        size = size_per_record * records_per_buffer
+        # Note, ATS9440 (one of the few >2 channel boards) only returns 2 headers, even if 4 channels are enabled
             
         self.address = None
         if self.bytes_per_sample == 1:
@@ -286,7 +294,7 @@ class Buffer:
         ).from_address(self.address)
         
         self.buffer = np.frombuffer(ctypes_array, dtype=np_dtype)
-        self.buffer.shape = (records, channels, self.buffer.size//(records*channels))
+        self.buffer.shape = (records_per_buffer, size_per_record//self.bytes_per_sample)
 
         self._ctypes_buffer = ctypes_array # hold ref to avoid GC
 
@@ -312,6 +320,7 @@ class Buffer:
     
     @cached_property
     def header_size(self):
+        """Returns 16 when headers are enable, 0 otherwise."""
         return 16 if self.include_header else 0
     
     def get_headers(self) -> list[ALAZAR_HEADER]:
@@ -320,7 +329,7 @@ class Buffer:
             return None
 
         # Retrieve only the header associated with the first channel (2nd channel header is mostly redundant)
-        headers_bytes = [hb.tobytes() for hb in self.buffer[:,0,:16//self.bytes_per_sample]]
+        headers_bytes = [hb.tobytes() for hb in self.buffer[:, :16//self.bytes_per_sample]]
 
         # Create a buffer and copy the data into it
         buffers = [create_string_buffer(hb, 16) for hb in headers_bytes]
@@ -329,10 +338,29 @@ class Buffer:
         return [cast(b, POINTER(ALAZAR_HEADER)).contents for b in buffers]
     
     def get_data(self):
-        """Returns a copy of the buffer data, omitting and headers or footers."""
-        return np.array(
-            self.buffer[:, :, (self.header_size//self.bytes_per_sample):]
-        )
+        """Returns a copy of the buffer data, omitting headers or footers."""
+        if self.interleave_samples:
+            # Data order: [Records][Timepoints][Channels] (both headers, max 2, precede sample data)
+            header_offset = self.header_size * min(self.channels,2) \
+                // self.bytes_per_sample
+            data = np.array(self.buffer[:, header_offset:])
+            data.shape = (
+                self.records_per_buffer, 
+                self.samples_per_record, 
+                self.channels
+            )
+        else:
+            # Data order: [Records][Channels][Timepoints]
+            header_offset = self.header_size//self.bytes_per_sample
+            data = np.empty(
+                shape=(self.records_per_buffer, self.channels, self.samples_per_record)
+            )
+            for c in range(self.channels):
+                data[:,c,:] = self.buffer[
+                    :, 
+                    c*self.samples_per_record + (c+1)*header_offset: (c+1)*self.samples_per_record + (c+1)*header_offset
+                ]
+        return data
 
 
 class Board:

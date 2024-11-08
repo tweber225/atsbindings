@@ -3,13 +3,15 @@ from atsbindings import Board, Buffer, Ats
 
 # Parameters
 channels = [True, True] # [channel A, channel B, etc] (extend for >2 channel boards)
-input_ranges = [2.0, 2.0] # +/- V (match size of channels list) (must match ones of the available ranges)
+input_ranges = [2.0, 2.0] # +/- V (match size of channels list) (each must match one of the available input ranges)
 sample_rate = 20e6 # must match one of the available internally generated sample rates
-samples_per_record = 1024
+samples_per_record = 2048
 records_per_buffer = 128
-buffers_to_acquire = 128
+buffers_to_acquire = 8
 buffer_count = 8
-headers = True
+trigger_source = Ats.TriggerSources.TRIG_EXTERNAL
+include_headers = True # Required for timestamps
+interleave_samples = False # Required for high-performance, but not supported on all boards
 
 # Initialize board, set acquisition parameters
 board = Board()
@@ -32,7 +34,7 @@ for i in range(nchannels_present):
 board.set_trigger_operation(
     operation=Ats.TriggerOperations.TRIG_ENGINE_OP_J,
     engine1=Ats.TriggerEngines.TRIG_ENGINE_J,
-    source1=Ats.TriggerSources.TRIG_CHAN_A,
+    source1=trigger_source,
     slope1=Ats.TriggerSlopes.TRIGGER_SLOPE_POSITIVE,
     level1=128,
     engine2=Ats.TriggerEngines.TRIG_ENGINE_K,
@@ -46,7 +48,7 @@ board.set_external_trigger(
     range=Ats.ExternalTriggerRanges.ETR_5V
 )
 
-board.set_trigger_time_out(0)
+board.set_trigger_time_out(0) # setting 0 makes digitizer wait for trigger (like 'Normal' triggering)
 
 board.set_trigger_delay(0)
 
@@ -60,7 +62,9 @@ board.configure_aux_io(
 buffers = []
 for _ in range(buffer_count):
     buffer = Buffer(board, nchannels_active, records_per_buffer, 
-                    samples_per_record, include_header=headers)
+                    samples_per_record, 
+                    include_header=include_headers,
+                    interleave_samples=interleave_samples)
     buffers.append(buffer)
 
 
@@ -70,8 +74,10 @@ board.set_record_size(pre_trigger_samples=0, post_trigger_samples=samples_per_re
 channel_mask = sum([c*Ats.Channels.from_int(i) for i,c in enumerate(channels)])
 
 flags = Ats.ADMAModes.ADMA_TRADITIONAL_MODE | Ats.ADMAFlags.ADMA_EXTERNAL_STARTCAPTURE 
-if headers:
+if include_headers:
     flags = flags | Ats.ADMAFlags.ADMA_ENABLE_RECORD_HEADERS
+if interleave_samples:
+    flags = flags | Ats.ADMAFlags.ADMA_INTERLEAVE_SAMPLES
 
 board.before_async_read(
     channels=channel_mask,
@@ -103,9 +109,9 @@ try:
         buffers_completed += 1
 
         # Check headers
-        if headers:
-            headers = buffer.get_headers()
-            print("Record #:", headers[0].hdr1.RecordNumber, "Timestamp:", headers[0].hdr2.TimeStampLowPart)
+        if include_headers:
+            include_headers = buffer.get_headers()
+            print("Record #:", include_headers[0].hdr1.RecordNumber, "Timestamp:", include_headers[0].hdr2.TimeStampLowPart)
 
         # Copy data, repost buffer
         tmp_data = buffer.get_data()
@@ -125,3 +131,18 @@ finally:
 
 
 print(f"Acquisition done")
+
+try:
+    import matplotlib.pyplot as plt
+except:
+    print("Matplot lib not installed. Skipping plotting.")
+    exit()
+
+fig,ax = plt.subplots()
+
+for c in range(nchannels_active):
+    if interleave_samples:
+        ax.plot(tmp_data[0,:,c])
+    else:
+        ax.plot(tmp_data[0,c,:])
+plt.show()
