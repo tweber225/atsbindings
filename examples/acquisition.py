@@ -2,17 +2,17 @@ from atsbindings import Board, Buffer, Ats
 
 
 # Parameters
-channels = [True, False] # [channel A, channel B, etc] (extend for >2 channel boards)
-input_ranges = [.4, .4] # +/- V (match size of channels list) (each must match one of the available input ranges)
-sample_rate = 4000e6 # must match one of the available internally generated sample rates
-samples_per_record = 8192
+channels = [True, True] # [channel A, channel B, etc] (extend for >2 channel boards)
+input_ranges = [0.4, 0.4] # +/- V (match size of channels list) (each must match one of the available input ranges)
+sample_rate = 20e6 # must match one of the available internally generated sample rates
+samples_per_record = 1024
 records_per_buffer = 128
 buffers_to_acquire = 4
 buffer_count = 4
 trigger_source = Ats.TriggerSources.TRIG_EXTERNAL
-acquisition_mode = Ats.ADMAModes.ADMA_NPT
-enable_headers = False # Required for timestamps in Traditional ADMA mode
-enable_footers = True # Required for timestamps in NPT ADMA mode
+acquisition_mode = Ats.ADMAModes.ADMA_TRADITIONAL_MODE
+enable_headers = True # Required for timestamps in Traditional ADMA mode
+enable_footers = False # Required for timestamps in NPT ADMA mode
 interleave_samples = False # Required for high-performance, but not supported on all boards
 
 if enable_headers:
