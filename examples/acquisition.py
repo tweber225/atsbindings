@@ -2,16 +2,25 @@ from atsbindings import Board, Buffer, Ats
 
 
 # Parameters
-channels = [True, True] # [channel A, channel B, etc] (extend for >2 channel boards)
-input_ranges = [2.0, 2.0] # +/- V (match size of channels list) (each must match one of the available input ranges)
-sample_rate = 20e6 # must match one of the available internally generated sample rates
-samples_per_record = 2048
+channels = [True, False] # [channel A, channel B, etc] (extend for >2 channel boards)
+input_ranges = [.4, .4] # +/- V (match size of channels list) (each must match one of the available input ranges)
+sample_rate = 4000e6 # must match one of the available internally generated sample rates
+samples_per_record = 8192
 records_per_buffer = 128
-buffers_to_acquire = 8
-buffer_count = 8
+buffers_to_acquire = 4
+buffer_count = 4
 trigger_source = Ats.TriggerSources.TRIG_EXTERNAL
-include_headers = True # Required for timestamps
+acquisition_mode = Ats.ADMAModes.ADMA_NPT
+enable_headers = False # Required for timestamps in Traditional ADMA mode
+enable_footers = True # Required for timestamps in NPT ADMA mode
 interleave_samples = False # Required for high-performance, but not supported on all boards
+
+if enable_headers:
+    assert acquisition_mode == Ats.ADMAModes.ADMA_TRADITIONAL_MODE, \
+        "Headers are only available in Traditional Mode"
+if enable_footers:
+    assert acquisition_mode == Ats.ADMAModes.ADMA_NPT, \
+        "Footers are only available in NPT Mode"
 
 # Initialize board, set acquisition parameters
 board = Board()
@@ -45,7 +54,7 @@ board.set_trigger_operation(
 
 board.set_external_trigger(
     coupling=Ats.Couplings.DC_COUPLING,
-    range=Ats.ExternalTriggerRanges.ETR_5V
+    range=Ats.ExternalTriggerRanges.ETR_2V5
 )
 
 board.set_trigger_time_out(0) # setting 0 makes digitizer wait for trigger (like 'Normal' triggering)
@@ -63,7 +72,8 @@ buffers = []
 for _ in range(buffer_count):
     buffer = Buffer(board, nchannels_active, records_per_buffer, 
                     samples_per_record, 
-                    include_header=include_headers,
+                    enable_headers,
+                    enable_footers,
                     interleave_samples=interleave_samples)
     buffers.append(buffer)
 
@@ -73,9 +83,11 @@ board.set_record_size(pre_trigger_samples=0, post_trigger_samples=samples_per_re
 
 channel_mask = sum([c*Ats.Channels.from_int(i) for i,c in enumerate(channels)])
 
-flags = Ats.ADMAModes.ADMA_TRADITIONAL_MODE | Ats.ADMAFlags.ADMA_EXTERNAL_STARTCAPTURE 
-if include_headers:
+flags = Ats.ADMAFlags.ADMA_EXTERNAL_STARTCAPTURE | acquisition_mode
+if enable_headers:
     flags = flags | Ats.ADMAFlags.ADMA_ENABLE_RECORD_HEADERS
+if enable_footers:
+    flags = flags | Ats.ADMAFlags.ADMA_ENABLE_RECORD_FOOTERS
 if interleave_samples:
     flags = flags | Ats.ADMAFlags.ADMA_INTERLEAVE_SAMPLES
 
@@ -109,13 +121,18 @@ try:
         buffers_completed += 1
 
         # Check headers
-        if include_headers:
-            include_headers = buffer.get_headers()
-            print("Record #:", include_headers[0].hdr1.RecordNumber, "Timestamp:", include_headers[0].hdr2.TimeStampLowPart)
+        if enable_headers:
+            headers = buffer.get_headers()
+            print("Record #:", headers[0].record_number, ", Timestamp:", headers[0].timestamp)
+
+        # Check footers
+        if enable_footers:
+            footers = buffer.get_footers()
+            print("Record #:", footers[0].record_number, ", Timestamp:", footers[0].timestamp)
 
         # Copy data, repost buffer
         tmp_data = buffer.get_data()
-        print(tmp_data.shape)
+        print("Data shape:", tmp_data.shape)
 
         board.post_async_buffer(
             buffer=buffer.address, 
@@ -131,6 +148,7 @@ finally:
 
 
 print(f"Acquisition done")
+
 
 try:
     import matplotlib.pyplot as plt

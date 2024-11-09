@@ -24,8 +24,12 @@ print(f"Input impedance options: {', '.join(impedances)}")
 # Get input ranges for first available impedance
 ranges = bsi.input_ranges(bsi.input_impedances[0])
 input_ranges = [str(v) for v in ranges]
-print(f"With input impedance {impedances[0]}, the narrowest input range" 
-      + f" is {input_ranges[0]} and widest is {input_ranges[-1]}")
+if len(input_ranges) == 1:
+      print(f"With input impedance {impedances[0]}, the fixed input range" 
+            + f" is {input_ranges[0]}")
+else:
+      print(f"With input impedance {impedances[0]}, the narrowest input range" 
+            + f" is {input_ranges[0]} and widest is {input_ranges[-1]}")
 
 # Get the external trigger ranges
 etr = bsi.external_trigger_ranges

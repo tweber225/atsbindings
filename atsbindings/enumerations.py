@@ -1,5 +1,5 @@
 from enum import Enum, IntEnum
-from ctypes import Structure, c_uint32, c_uint
+from ctypes import Structure, c_uint64, c_uint32, c_uint16, c_uint8, c_uint, c_bool
 
 
 class ClockSources(Enum):
@@ -509,7 +509,8 @@ class HEADER3(Structure):
         ("ThisChannelTriggered", c_uint, 1) # bit 31
     ]
 
-class ALAZAR_HEADER(Structure):
+class AtsHeader(Structure):
+    # https://docs.alazartech.com/ats-sdk-user-guide/latest/programmers-guide.html#record-headers-and-timestamps
     _fields_ = [
         ("hdr0", HEADER0),
         ("hdr1", HEADER1),
@@ -517,3 +518,43 @@ class ALAZAR_HEADER(Structure):
         ("hdr3", HEADER3)
     ]
 
+    @property
+    def record_number(self):
+        return self.hdr1.RecordNumber
+
+    @property
+    def timestamp(self):
+        # Combine TimeStampLowPart and TimeStampHighPart to form the full timestamp
+        return (self.hdr2.TimeStampLowPart) + \
+               (self.hdr3.TimeStampHighPart << 32) 
+
+
+class AtsFooter(Structure):
+    # https://github.com/alazartech/ats-footers/blob/release/atsfooters/src/atsfooters_internal.hpp
+    _fields_ = [
+        ('aux_and_pulsar_low', c_uint8),  
+        ('pulsar_high', c_uint8),        
+        ('tt_low', c_uint16),             
+        ('tt_med', c_uint16), 
+        ('tt_high', c_uint16),
+        ('rn_low', c_uint16), 
+        ('rn_high', c_uint16),  
+        ('fc_low', c_uint16),
+        ('fc_high', c_uint8), 
+        ('type', c_uint8) 
+    ]
+
+    @property
+    def record_number(self):
+        # Combine rn_low and rn_high to form the full record number
+        return (self.rn_low) + \
+               (self.rn_high << 16) 
+
+    @property
+    def timestamp(self):
+        # Combine tt_low, tt_med, and tt_high to form the full timestamp
+        return (self.tt_low) + \
+               (self.tt_med << 16) + \
+               (self.tt_high << 32)
+    
+    

@@ -265,14 +265,18 @@ class Buffer:
         self.channels = channels
         self.records_per_buffer = records_per_buffer
         self.samples_per_record = samples_per_record
-        self.include_header = include_header
+        if include_header and include_footer:
+            raise ValueError("Can not include both header and footer")
+        self.include_header = include_header # header increases record size
+        self.include_footer = include_footer # footers replace data at end of record
         self.interleave_samples = interleave_samples
 
+        # When interleaved, API returns 2 channels of headers, max
         nheaders = min(channels,2) if interleave_samples else channels
+
         size_per_record = (channels * self.bytes_per_sample * samples_per_record 
                            + self.header_size * nheaders)
         size = size_per_record * records_per_buffer
-        # Note, ATS9440 (one of the few >2 channel boards) only returns 2 headers, even if 4 channels are enabled
             
         self.address = None
         if self.bytes_per_sample == 1:
@@ -306,7 +310,7 @@ class Buffer:
 
     @cached_property
     def size(self):
-        """Returns the buffer size in bytes"""
+        """Returns the buffer size, including headers, in bytes"""
         return sizeof(self._ctypes_buffer)
 
     @property
@@ -323,7 +327,12 @@ class Buffer:
         """Returns 16 when headers are enable, 0 otherwise."""
         return 16 if self.include_header else 0
     
-    def get_headers(self) -> list[ALAZAR_HEADER]:
+    @cached_property
+    def footer_size(self):
+        """Returns 16 when footers are enable, 0 otherwise."""
+        return 16 if self.include_footer else 0
+    
+    def get_headers(self) -> list[AtsHeader]:
         """Returns the ALAZAR_HEADER object from the first 16 bytes of the buffer."""
         if not self.include_header:
             return None
@@ -335,7 +344,15 @@ class Buffer:
         buffers = [create_string_buffer(hb, 16) for hb in headers_bytes]
         
         # Cast and return dereferenced header structures
-        return [cast(b, POINTER(ALAZAR_HEADER)).contents for b in buffers]
+        return [cast(b, POINTER(AtsHeader)).contents for b in buffers]
+    
+    def get_footers(self) -> list[AtsFooter]:
+        if not self.include_footer:
+            return None
+        
+        footer_bytes = [fb.tobytes() for fb in self.buffer[:, -16//self.bytes_per_sample//self.channels:]]
+        buffers = [create_string_buffer(hb, 16) for hb in footer_bytes]
+        return [cast(b, POINTER(AtsFooter)).contents for b in buffers]
     
     def get_data(self):
         """Returns a copy of the buffer data, omitting headers or footers."""
@@ -343,22 +360,27 @@ class Buffer:
             # Data order: [Records][Timepoints][Channels] (both headers, max 2, precede sample data)
             header_offset = self.header_size * min(self.channels,2) \
                 // self.bytes_per_sample
-            data = np.array(self.buffer[:, header_offset:])
+            footer_offset = self.footer_size // self.bytes_per_sample \
+                // self.channels
+            data = np.array(self.buffer[:, header_offset:-footer_offset])
             data.shape = (
                 self.records_per_buffer, 
-                self.samples_per_record, 
+                self.samples_per_record - footer_offset, 
                 self.channels
             )
         else:
             # Data order: [Records][Channels][Timepoints]
-            header_offset = self.header_size//self.bytes_per_sample
+            header_offset = self.header_size // self.bytes_per_sample
+            footer_offset = self.footer_size // self.bytes_per_sample \
+                // self.channels
+            samples_per_record_minus_footer = self.samples_per_record - footer_offset
             data = np.empty(
-                shape=(self.records_per_buffer, self.channels, self.samples_per_record)
+                shape=(self.records_per_buffer, self.channels, samples_per_record_minus_footer)
             )
             for c in range(self.channels):
                 data[:,c,:] = self.buffer[
                     :, 
-                    c*self.samples_per_record + (c+1)*header_offset: (c+1)*self.samples_per_record + (c+1)*header_offset
+                    c*samples_per_record_minus_footer + (c+1)*header_offset: (c+1)*samples_per_record_minus_footer + (c+1)*header_offset
                 ]
         return data
 
