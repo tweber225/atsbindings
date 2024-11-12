@@ -4,7 +4,7 @@ from atsbindings import Board, Buffer, Ats
 # Parameters
 channels = [True, True] # [channel A, channel B, etc] (extend for >2 channel boards)
 input_ranges = [0.4, 0.4] # +/- V (match size of channels list) (each must match one of the available input ranges)
-sample_rate = 20e6 # must match one of the available internally generated sample rates
+sample_rate = 20e6 # Hz, must match one of the available internally generated sample rates
 samples_per_record = 1024
 records_per_buffer = 128
 buffers_to_acquire = 4
@@ -14,6 +14,8 @@ acquisition_mode = Ats.ADMAModes.ADMA_TRADITIONAL_MODE
 enable_headers = True # Required for timestamps in Traditional ADMA mode
 enable_footers = False # Required for timestamps in NPT ADMA mode
 interleave_samples = False # Required for high-performance, but not supported on all boards
+data_packing = Ats.PackModes.PACK_DEFAULT # Check whether board supports packing modes
+
 
 if enable_headers:
     assert acquisition_mode == Ats.ADMAModes.ADMA_TRADITIONAL_MODE, \
@@ -21,6 +23,10 @@ if enable_headers:
 if enable_footers:
     assert acquisition_mode == Ats.ADMAModes.ADMA_NPT, \
         "Footers are only available in NPT Mode"
+    assert data_packing == Ats.PackModes.PACK_DEFAULT, \
+        "Footers are not available in data packing modes."
+if data_packing == Ats.PackModes.PACK_12_BITS_PER_SAMPLE:
+    assert interleave_samples, "12-bit packing mode only supported with interleaved samples"
 
 # Initialize board, set acquisition parameters
 board = Board()
@@ -66,15 +72,24 @@ board.configure_aux_io(
     parameter=0
 )
 
+# Set data packing
+board.set_parameter(
+    Ats.Channels.CHANNEL_ALL, Ats.Parameters.PACK_MODE, data_packing
+)
 
 # Create buffers
 buffers = []
 for _ in range(buffer_count):
-    buffer = Buffer(board, nchannels_active, records_per_buffer, 
-                    samples_per_record, 
-                    enable_headers,
-                    enable_footers,
-                    interleave_samples=interleave_samples)
+    buffer = Buffer(
+        board, 
+        nchannels_active, 
+        records_per_buffer, 
+        samples_per_record, 
+        enable_headers,
+        enable_footers,
+        interleave_samples,
+        data_packing
+    )
     buffers.append(buffer)
 
 
@@ -132,7 +147,6 @@ try:
 
         # Copy data, repost buffer
         tmp_data = buffer.get_data()
-        print("Data shape:", tmp_data.shape)
 
         board.post_async_buffer(
             buffer=buffer.address, 

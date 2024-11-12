@@ -260,7 +260,8 @@ class Buffer:
     def __init__(self, board:'Board', channels:int,
                  records_per_buffer:int, samples_per_record:int, 
                  include_header:bool=False, include_footer:bool=False,
-                 interleave_samples:bool=False):
+                 interleave_samples:bool=False,
+                 data_packing=PackModes.PACK_DEFAULT):
         self._board = board
         self.channels = channels
         self.records_per_buffer = records_per_buffer
@@ -270,12 +271,15 @@ class Buffer:
         self.include_header = include_header # header increases record size
         self.include_footer = include_footer # footers replace data at end of record
         self.interleave_samples = interleave_samples
+        self.data_packing = data_packing
 
         # When interleaved, API returns 2 channels of headers, max
         nheaders = min(channels,2) if interleave_samples else channels
 
-        size_per_record = (channels * self.bytes_per_sample * samples_per_record 
-                           + self.header_size * nheaders)
+        size_per_record = int(
+            channels * self.bytes_per_sample * samples_per_record 
+            + self.header_size * nheaders
+        )
         size = size_per_record * records_per_buffer
             
         self.address = None
@@ -287,6 +291,10 @@ class Buffer:
             self.address = _alloc_buffer_u16(self._bhandle, size)
             c_sample_type = c_uint16
             np_dtype = np.uint16
+        elif self.bytes_per_sample == 1.5:   # 12-bit packing mode
+            self.address = _alloc_buffer_u8(self._bhandle, size)
+            c_sample_type = c_uint8
+            np_dtype = np.uint8
         else:
             raise ValueError("Invalid buffer data type")
 
@@ -294,11 +302,11 @@ class Buffer:
             raise ValueError("Error allocating buffer")
         
         ctypes_array = (
-            c_sample_type * (size // self.bytes_per_sample)
+            c_sample_type * (size // int(self.bytes_per_sample))
         ).from_address(self.address)
         
         self.buffer = np.frombuffer(ctypes_array, dtype=np_dtype)
-        self.buffer.shape = (records_per_buffer, size_per_record//self.bytes_per_sample)
+        self.buffer.shape = (records_per_buffer, size_per_record//int(self.bytes_per_sample))
 
         self._ctypes_buffer = ctypes_array # hold ref to avoid GC
 
@@ -319,8 +327,14 @@ class Buffer:
 
     @cached_property
     def bytes_per_sample(self):
-        _, bits_per_sample = self._board.get_channel_info()
-        return (bits_per_sample + 7)//8
+        if self.data_packing == PackModes.PACK_8_BITS_PER_SAMPLE:
+            bytes_per_sample = 1
+        elif self.data_packing == PackModes.PACK_12_BITS_PER_SAMPLE:
+            bytes_per_sample = 1.5
+        else:
+            _, bits_per_sample = self._board.get_channel_info()
+            bytes_per_sample = (bits_per_sample + 7)//8
+        return bytes_per_sample
     
     @cached_property
     def header_size(self):
@@ -349,8 +363,11 @@ class Buffer:
     def get_footers(self) -> list[AtsFooter]:
         if not self.include_footer:
             return None
-        
-        footer_bytes = [fb.tobytes() for fb in self.buffer[:, -16//self.bytes_per_sample//self.channels:]]
+
+        footer_data = self.buffer[:, (-16//self.bytes_per_sample):]
+        if self.interleave_samples: 
+            footer_data = footer_data[:, [0, 2, 4, 6, 1, 3, 5, 7]]
+        footer_bytes = [fb.tobytes() for fb in footer_data]
         buffers = [create_string_buffer(hb, 16) for hb in footer_bytes]
         return [cast(b, POINTER(AtsFooter)).contents for b in buffers]
     
@@ -359,15 +376,28 @@ class Buffer:
         if self.interleave_samples:
             # Data order: [Records][Timepoints][Channels] (both headers, max 2, precede sample data)
             header_offset = self.header_size * min(self.channels,2) \
-                // self.bytes_per_sample
-            footer_offset = self.footer_size // self.bytes_per_sample \
-                // self.channels
-            data = np.array(self.buffer[:, header_offset:-footer_offset])
-            data.shape = (
-                self.records_per_buffer, 
-                self.samples_per_record - footer_offset, 
-                self.channels
-            )
+                // int(self.bytes_per_sample)
+            footer_offset = self.footer_size // int(self.bytes_per_sample) 
+            
+            if self.data_packing == PackModes.PACK_12_BITS_PER_SAMPLE:
+                # No footers for 12-bit packing mode
+                data = np.array(self.buffer[:, header_offset:], dtype=np.uint16)
+                data.shape = (128, -1, 3)
+                unpacked0 = data[:,:,[0]] | ((data[:,:,[1]] & 0x0F) << 8)
+                unpacked1 = (data[:,:,[1]] >> 4) | (data[:,:,[2]] << 4)
+                data = np.concatenate((unpacked0,unpacked1),2)
+                data.shape = (
+                    self.records_per_buffer, 
+                    self.samples_per_record, 
+                    self.channels
+                )
+            else:
+                data = np.array(self.buffer[:, header_offset:-footer_offset or None])
+                data.shape = (
+                    self.records_per_buffer, 
+                    self.samples_per_record - footer_offset//self.channels, 
+                    self.channels
+                )
         else:
             # Data order: [Records][Channels][Timepoints]
             header_offset = self.header_size // self.bytes_per_sample
@@ -529,6 +559,13 @@ class Board:
         Control the LED on the board mounting bracket. 
         """
         ats.AlazarSetLED(self._handle, led_state.value)
+
+    @ctypes_sig([c_void_p, c_uint8, c_uint32, c_long])
+    def set_parameter(self, channel, parameter:Parameters, value):
+        """
+        Set a device parameter.
+        """
+        ats.AlazarSetParameter(self._handle, channel, parameter.value, value.value)
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32])
     def set_record_size(self, pre_trigger_samples, post_trigger_samples):
