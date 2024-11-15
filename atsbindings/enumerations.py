@@ -17,6 +17,19 @@ class ClockSources(Enum):
     MASTER_CLOCK = 17
     INTERNAL_CLOCK_SET_VCO = 18
 
+    def __str__(self):
+        """ Provides a readable version """
+        return self.name.replace('_', ' ').title()
+    
+    @classmethod
+    def from_str(cls, source_str:str):
+        """ Returns the enumeration matching the readable string """
+        normalized_str = source_str.replace(' ', '_').upper()
+        try:
+            return cls[normalized_str]
+        except KeyError:
+            raise ValueError(f"'{source_str}' is not a valid ClockSources enum string")
+
 
 class SampleRates(Enum):
     SAMPLE_RATE_1KSPS = 0x1
@@ -125,6 +138,22 @@ class SampleRates(Enum):
 class ClockEdges(Enum):
     CLOCK_EDGE_RISING = 0
     CLOCK_EDGE_FALLING = 1
+
+    def __str__(self):
+        """ Provides a readable version """
+        if self.value == 0:
+            return "Rising"
+        else:
+            return "Falling"
+        
+    @classmethod
+    def from_str(cls, edge_str:str):
+        if edge_str.lower() == "rising":
+            return cls.CLOCK_EDGE_RISING
+        elif edge_str.lower() == "falling":
+            return cls.CLOCK_EDGE_FALLING
+        else:
+             raise ValueError(f"'{edge_str}' is not a valid ClockEdges enum string")
 
 
 class Channels(IntEnum):
@@ -285,8 +314,19 @@ class InputRanges(Enum):
             return getattr(cls, volts_string)
         raise ValueError(f"No matching input range found for {v} V")
     
+    @classmethod
+    def from_str(cls, range_str:str):
+        strsplit = range_str.split()
+        v = float(strsplit[0].replace("±",""))
+        u = strsplit[1].lower()
+        if u == "mv":
+            return cls.from_v(v/1000)
+        elif u == "v":
+            return cls.from_v(v)
+        raise ValueError(f"No matching input range for string, {range_str}")
+        
     @property
-    def in_v(self):
+    def to_volts(self):
         if self.name == "INPUT_RANGE_PM_20_MV": 
             return 0.02
         elif self.name == "INPUT_RANGE_PM_40_MV": 
@@ -333,7 +373,7 @@ class InputRanges(Enum):
             return 16.0
         
     def __str__(self) -> str:
-        r = self.in_v
+        r = self.to_volts
         if r < 1:
             return f"±{int(r*1000)} mV"
         else:
@@ -371,6 +411,22 @@ class Couplings(Enum):
     AC_COUPLING = 1
     DC_COUPLING = 2
 
+    def __str__(self):
+        if self.value == 1:
+            return "AC"
+        else:
+            return "DC"
+
+    @classmethod
+    def from_str(cls, coupling_str:str):
+        coupling = coupling_str.lower()
+        if coupling == "ac":
+            return cls.AC_COUPLING
+        elif coupling == "dc":
+            return cls.DC_COUPLING
+        else:
+            raise ValueError(f"'{coupling_str}' is not a valid Couplings enum string")
+
 
 class TriggerEngines(Enum):
     TRIG_ENGINE_J = 0
@@ -407,10 +463,56 @@ class TriggerSources(Enum):
     TRIG_CHAN_O = 0x10
     TRIG_CHAN_P = 0x11
 
+    @property
+    def channel_index(self):
+        if self not in [TriggerSources.TRIG_EXTERNAL, TriggerSources.TRIG_DISABLE]:
+            index = self.value
+            if index > 3: index -= 2
+            return index
+        else:
+            raise RuntimeError("Trigger source is not an input channel")
+
+    def __str__(self):
+        """ Provides a readable version """
+        if self.name[5:9] == "CHAN":
+            return f"Channel {self.name[-1]}"
+        elif self.name[5:] == "EXTERNAL":
+            return "External"
+        else:
+            return "Disable"
+
+    @classmethod
+    def from_str(cls, trigger:str):
+        trigger_str = trigger.lower()
+        if trigger_str[:7] == "channel":
+            return cls[f"TRIG_CHAN_{trigger_str[-1].upper()}"]
+        elif trigger_str == "external":
+            return cls.TRIG_EXTERNAL
+        elif trigger_str == "disable":
+            return cls.TRIG_DISABLE
+        else:
+            raise ValueError(f"'{trigger}' is not a valid TriggerSources enum string")
+
 
 class TriggerSlopes(Enum):
     TRIGGER_SLOPE_POSITIVE = 1
     TRIGGER_SLOPE_NEGATIVE = 2
+
+    def __str__(self):
+        if self.value == 1:
+            return "Positive"
+        else:
+            return "Negative"
+        
+    @classmethod
+    def from_str(cls, slope:str):
+        slope_str = slope.lower()
+        if slope_str == "positive":
+            return cls.TRIGGER_SLOPE_POSITIVE
+        elif slope_str == "negative":
+            return cls.TRIGGER_SLOPE_NEGATIVE
+        else:
+            raise ValueError(f"'{slope}' is not a valid TriggerSlopes enum string")
 
 
 class Impedances(Enum):
@@ -425,11 +527,24 @@ class Impedances(Enum):
             return cls.IMPEDANCE_1M_OHM
         elif ohms == 50:
             return cls.IMPEDANCE_50_OHM
-        if ohms == 75:
+        elif ohms == 75:
             return cls.IMPEDANCE_75_OHM
-        if ohms == 300:
+        elif ohms == 300:
             return cls.IMPEDANCE_300_OHM
         raise ValueError(f"No matching input impedance found for {ohms} ohms")
+    
+    @classmethod
+    def from_str(cls, ohms_str:str):
+        ohms = ohms_str.lower()
+        if ohms == "50 ohm":
+            return cls.IMPEDANCE_50_OHM
+        elif ohms == "1 mohm":
+            return cls.IMPEDANCE_1M_OHM
+        elif ohms == "75 ohm":
+            return cls.IMPEDANCE_75_OHM
+        elif ohms == "300 ohm":
+            return cls.IMPEDANCE_300_OHM
+        raise ValueError(f"No matching input impedance found for {ohms_str}")
     
     @property
     def in_ohms(self):
@@ -455,8 +570,39 @@ class ExternalTriggerRanges(Enum):
     ETR_1V = 1
     ETR_TTL = 2
     ETR_2V5 = 3
-    ETR_5V_300OHM = 4  
-    
+
+    @property
+    def to_volts(self):
+        if self.name == "ETR_5V": 
+            return 5.0
+        elif self.name == "ETR_1V": 
+            return 1.0
+        elif self.name == "ETR_2V5": 
+            return 2.5
+        elif self.name == "ETR_TTL": 
+            return 5.0 # Not +/-5V in this case, 0V to 5V
+        
+    def __str__(self):
+        if self.name == "ETR_5V": 
+            return "±5 V"
+        elif self.name == "ETR_1V": 
+            return "±1 V"
+        elif self.name == "ETR_2V5": 
+            return "±2.5 V"
+        elif self.name == "ETR_TTL": 
+            return "TTL"
+        
+    @classmethod
+    def from_str(cls, external_trigger_range_str:str):
+        if external_trigger_range_str == "±5 V": 
+            return cls.ETR_5V
+        elif external_trigger_range_str == "±1 V": 
+            return cls.ETR_1V
+        elif external_trigger_range_str == "±2.5 V": 
+            return cls.ETR_2V5
+        elif external_trigger_range_str == "TTL": 
+            return cls.ETR_TTL
+
 
 class LED(Enum):
     LED_OFF = 0

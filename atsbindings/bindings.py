@@ -52,7 +52,7 @@ class BoardSpecificInfo:
         self.max_npt_pretrig_length:int = bsi[board_kind]["max_npt_pretrig_length"]
         self._samples_per_timestamp:dict = bsi[board_kind]["samples_per_timestamp"]
         self._channel_configs:list = bsi[board_kind]["channel_configs"]
-        self.sample_rates:list = bsi[board_kind]["sample_rates"]
+        self.sample_rates:list[SampleRates] = bsi[board_kind]["sample_rates"]
         self.external_trigger_ranges:list = bsi[board_kind]["external_trigger_levels"]
         self._set_external_clock_frequency_ranges(bsi[board_kind]["external_clock_frequency_limits"])
 
@@ -152,9 +152,34 @@ class BoardSpecificInfo:
             self._external_clock_frequency_ranges.update({clock : range})
 
     @property
-    def supported_external_clocks(self):
-        return list(self._external_clock_frequency_ranges.keys())
+    def supported_clocks(self) -> list[ClockSources]:
+        clocks = [ClockSources.INTERNAL_CLOCK]
+        for clock in list(self._external_clock_frequency_ranges.keys()):
+            if clock == "Fast":
+                clocks.append(ClockSources.FAST_EXTERNAL_CLOCK)
+            elif clock == "Medium":
+                clocks.append(ClockSources.MEDIUM_EXTERNAL_CLOCK)
+            elif clock == "Slow":
+                clocks.append(ClockSources.SLOW_EXTERNAL_CLOCK)
+            elif clock == "AC":
+                clocks.append(ClockSources.EXTERNAL_CLOCK_AC)
+            elif clock == "DC":
+                clocks.append(ClockSources.EXTERNAL_CLOCK_DC)
+        return clocks
     
+    @property
+    def supported_trigger_sources(self) -> list[TriggerSources]:
+        """Returns the valid trigger sources for this board. """
+        trigger_sources = [
+            TriggerSources.TRIG_CHAN_A,
+            TriggerSources.TRIG_CHAN_B,
+            TriggerSources.TRIG_EXTERNAL,
+            TriggerSources.TRIG_DISABLE
+        ]
+        for i in range(self.channels - 2):
+            trigger_sources.append(TriggerSources[f"TRIG_CHAN_{chr(ord('C') + i)}"])
+        return trigger_sources
+        
     def external_clock_frequency_ranges(self, clock_source:ClockSources):
         return self._external_clock_frequency_ranges[clock_source]
 
@@ -202,33 +227,33 @@ def ctypes_sig(argtypes, restype=c_uint32, errcheck=check_return_code):
         return wrapper
     return decorator
 
+class System:
+    """
+    Object to provide methods to system parameters.
+    """
+    @ctypes_sig([POINTER(c_byte), POINTER(c_byte), POINTER(c_byte)])
+    def get_sdk_version() -> tuple[int,int,int]:
+        major = c_byte(0)
+        minor = c_byte(0)
+        revision = c_byte(0)
+        ats.AlazarGetSDKVersion(byref(major), byref(minor), byref(revision))
+        return (major.value, minor.value, revision.value)
 
-@ctypes_sig([POINTER(c_byte), POINTER(c_byte), POINTER(c_byte)])
-def get_sdk_version() -> tuple[int,int,int]:
-    major = c_byte(0)
-    minor = c_byte(0)
-    revision = c_byte(0)
-    ats.AlazarGetSDKVersion(byref(major), byref(minor), byref(revision))
-    return (major.value, minor.value, revision.value)
+    @ctypes_sig([POINTER(c_byte), POINTER(c_byte), POINTER(c_byte)])
+    def get_driver_version() -> tuple[int,int,int]:
+        major = c_byte(0)
+        minor = c_byte(0)
+        revision = c_byte(0)
+        ats.AlazarGetDriverVersion(byref(major), byref(minor), byref(revision))
+        return (major.value, minor.value, revision.value)
 
+    @ctypes_sig([], errcheck=None)
+    def num_of_systems() -> int:
+        return ats.AlazarNumOfSystems()
 
-@ctypes_sig([POINTER(c_byte), POINTER(c_byte), POINTER(c_byte)])
-def get_driver_version() -> tuple[int,int,int]:
-    major = c_byte(0)
-    minor = c_byte(0)
-    revision = c_byte(0)
-    ats.AlazarGetDriverVersion(byref(major), byref(minor), byref(revision))
-    return (major.value, minor.value, revision.value)
-
-
-@ctypes_sig([], errcheck=None)
-def num_of_systems() -> int:
-    return ats.AlazarNumOfSystems()
-
-
-@ctypes_sig([c_uint32], errcheck=None)
-def boards_in_system_by_system_id(sid:int) -> int:
-    return ats.AlazarBoardsInSystemBySystemID(sid)
+    @ctypes_sig([c_uint32], errcheck=None)
+    def boards_in_system_by_system_id(sid:int) -> int:
+        return ats.AlazarBoardsInSystemBySystemID(sid)
 
 
 @ctypes_sig([c_uint32, c_uint32], restype=c_void_p, errcheck=None)
@@ -497,6 +522,15 @@ class Board:
         minor = c_byte(0)
         ats.AlazarGetFPGAVersion(self._handle, byref(major), byref(minor))
         return (major.value, minor.value)
+    
+    @ctypes_sig([c_void_p, c_uint8, ])
+    def get_parameter(self, channel:Channels, parameter:Parameters):
+        """
+        Get a device parameter.
+        """
+        parameter_value = c_long(-1)
+        ats.AlazarGetParameter(self._handle, channel, parameter.value, byref(parameter_value))
+        return parameter_value.value
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32, c_uint32, c_uint32])
     def input_control_ex(self, channel:Channels, coupling:Couplings, 
@@ -525,7 +559,7 @@ class Board:
         return retval.value
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32, c_uint32, c_uint32])
-    def set_capture_clock(self, source, rate, 
+    def set_capture_clock(self, source:ClockSources, rate:SampleRates, 
                           edge=ClockEdges.CLOCK_EDGE_RISING, decimation=0):
         """
         Configure the sample clock source, edge and decimation. 
@@ -533,7 +567,9 @@ class Board:
         eclks = [
             ClockSources.FAST_EXTERNAL_CLOCK, 
             ClockSources.MEDIUM_EXTERNAL_CLOCK, 
-            ClockSources.SLOW_EXTERNAL_CLOCK
+            ClockSources.SLOW_EXTERNAL_CLOCK,
+            ClockSources.EXTERNAL_CLOCK_AC,
+            ClockSources.EXTERNAL_CLOCK_DC
         ]
         if source in eclks:
             rate = SampleRates.SAMPLE_RATE_USER_DEF
