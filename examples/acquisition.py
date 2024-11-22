@@ -33,7 +33,7 @@ board = Board()
 
 board.set_capture_clock(
     source=Ats.ClockSources.INTERNAL_CLOCK,
-    rate=Ats.SampleRates.from_hz(sample_rate)
+    rate=Ats.SampleRates.from_hertz(sample_rate)
 )
 
 nchannels_present = len(channels)

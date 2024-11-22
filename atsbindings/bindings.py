@@ -111,9 +111,9 @@ class BoardSpecificInfo:
         for rate in rates:
             v,u = re.findall(r"(\d+)(kS/s|MS/s)", rate)[0]
             if u == "kS/s":
-                self._sample_rates.append(SampleRates.from_hz(float(v)*1e3))
+                self._sample_rates.append(SampleRates.from_hertz(float(v)*1e3))
             elif u == "MS/s":
-                self._sample_rates.append(SampleRates.from_hz(float(v)*1e6))
+                self._sample_rates.append(SampleRates.from_hertz(float(v)*1e6))
     
     @property
     def external_trigger_ranges(self):
@@ -544,7 +544,9 @@ class Board:
     @ctypes_sig([c_void_p, c_void_p, c_uint32])
     def post_async_buffer(self, buffer, buffer_length):
         """
-        Posts a DMA buffer to a board.
+        Posts a DMA buffer to a board. 
+        
+        Parameters: buffer (address to buffer), buffer_length (buffer size)
         """
         ats.AlazarPostAsyncBuffer(self._handle, buffer, buffer_length)
 

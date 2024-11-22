@@ -71,7 +71,7 @@ class SampleRates(Enum):
 
     # Class method to find the enum by Hz value
     @classmethod
-    def from_hz(cls, hz):
+    def from_hertz(cls, hz):
         """
         Return the SampleRate enum based on the desired sample rate in Hz.
         """
@@ -117,8 +117,22 @@ class SampleRates(Enum):
             return _rate_map[hz]
         raise ValueError(f"No matching sample rate found for {hz} Hz")
     
+    @classmethod
+    def from_str(cls, rate_str:str):
+        v, u = rate_str.split()
+        if u == "kS/s":
+            return cls[f"SAMPLE_RATE_{v}KSPS"]
+        elif u == "MS/s":
+            return cls[f"SAMPLE_RATE_{v}MSPS"]
+        elif u == "GS/s":
+            return cls[f"SAMPLE_RATE_{int(v*1000)}MSPS"]
+        else:
+            raise ValueError("Invalid rate string unit: {u}")
+    
+        
+
     @property
-    def in_hz(self):
+    def to_hertz(self):
         rate = self.name[12:]
         if rate[-4:] == "KSPS":
             return int(float(rate[:-4])*1e3)
@@ -126,7 +140,7 @@ class SampleRates(Enum):
             return int(float(rate[:-4])*1e6)
         
     def __str__(self) -> str:
-        h = self.in_hz
+        h = self.to_hertz
         if h < 1e6:
             return f"{int(h/1000)} kS/s"
         elif h < 1e9:
@@ -536,13 +550,13 @@ class Impedances(Enum):
     @classmethod
     def from_str(cls, ohms_str:str):
         ohms = ohms_str.lower()
-        if ohms == "50 ohm":
+        if ohms in ["50 ohm", "50 Ω".lower()]:
             return cls.IMPEDANCE_50_OHM
-        elif ohms == "1 mohm":
+        elif ohms in ["1 mohm", "1 MΩ".lower()]:
             return cls.IMPEDANCE_1M_OHM
-        elif ohms == "75 ohm":
+        elif ohms in ["75 ohm", "75 Ω".lower()]:
             return cls.IMPEDANCE_75_OHM
-        elif ohms == "300 ohm":
+        elif ohms == ["300 ohm", "300 Ω".lower()]:
             return cls.IMPEDANCE_300_OHM
         raise ValueError(f"No matching input impedance found for {ohms_str}")
     
@@ -560,9 +574,9 @@ class Impedances(Enum):
     def __str__(self):
         r = self.in_ohms
         if r == 1e6:
-            return f"1 Mohm"
+            return f"1 MΩ"
         else:
-            return f"{int(r)} ohm"
+            return f"{int(r)} Ω"
 
 
 class ExternalTriggerRanges(Enum):
