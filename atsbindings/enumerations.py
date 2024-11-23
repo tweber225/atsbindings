@@ -676,6 +676,26 @@ class PackModes(Enum):
     PACK_8_BITS_PER_SAMPLE = 1
     PACK_12_BITS_PER_SAMPLE = 2
 
+    def __str__(self):
+        if self.value == 0:
+            return "None"
+        elif self.value == 1:
+            return "8-bit"
+        else:
+            return "12-bit"
+    
+    @classmethod
+    def from_str(cls, pack:str):
+        pack_lower = pack.lower()
+        if pack_lower == "none":
+            return cls.PACK_DEFAULT
+        elif pack_lower == "8-bit":
+            return cls.PACK_8_BITS_PER_SAMPLE
+        elif pack_lower == "12-bit":
+            return cls.PACK_12_BITS_PER_SAMPLE
+        else:
+            raise ValueError(f"'{pack}' is not a valid PackModes enum string")
+
 
 class APITraceStates(Enum):
     API_DISABLE_TRACE = 0

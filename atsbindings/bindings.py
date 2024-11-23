@@ -111,9 +111,9 @@ class BoardSpecificInfo:
         self._data_packings = [PackModes.PACK_DEFAULT]
         packing_strs = [s.lower() for s in packing_strs]
         if "8-bit" in packing_strs:
-            self._input_couplings.append(PackModes.PACK_8_BITS_PER_SAMPLE)
+            self._data_packings.append(PackModes.PACK_8_BITS_PER_SAMPLE)
         if "12-bit" in packing_strs:
-            self._input_couplings.append(PackModes.PACK_12_BITS_PER_SAMPLE)
+            self._data_packings.append(PackModes.PACK_12_BITS_PER_SAMPLE)
 
     def samples_per_timestamp(self, active_channels:int):
         """Returns the number of sample clock periods per timestamp increment. Depends on the number of active channels"""
