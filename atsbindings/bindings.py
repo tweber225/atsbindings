@@ -46,9 +46,9 @@ class BoardSpecificInfo:
 
         self.channels:int = bsi[board_kind]["channels"]
         self._set_input_ranges(bsi[board_kind]["input_ranges"]) # available input range depends on input impedance, so this property is more complicated
-        self.input_couplings:list[Couplings] = bsi[board_kind["input_coupling"]]
-        self.data_packings:list[PackModes] = bsi[board_kind["data_packing"]]
-        self.configure_lsb:bool = bsi[board_kind["configure_lsb"]]
+        self.input_couplings:list[Couplings] = bsi[board_kind]["input_coupling"]
+        self.data_packings:list[PackModes] = bsi[board_kind]["data_packing"]
+        self.configure_lsb:bool = bsi[board_kind]["configure_lsb"]
         self.min_record_size:int = bsi[board_kind]["min_record_size"]
         self.pretrig_alignment:int = bsi[board_kind]["pretrig_alignment"]
         self.record_resolution:int = bsi[board_kind]["record_resolution"]
@@ -56,7 +56,7 @@ class BoardSpecificInfo:
         self._samples_per_timestamp:dict = bsi[board_kind]["samples_per_timestamp"]
         self._channel_configs:list = bsi[board_kind]["channel_configs"]
         self.sample_rates:list[SampleRates] = bsi[board_kind]["sample_rates"]
-        self.bandwidth_limit:bool = bsi[board_kind["bandwidth_limit"]]
+        self.bandwidth_limit:bool = bsi[board_kind]["bandwidth_limit"]
         self.external_trigger_ranges:list = bsi[board_kind]["external_trigger_levels"]
         self._set_external_clock_frequency_ranges(bsi[board_kind]["external_clock_frequency_limits"])
 
@@ -168,7 +168,7 @@ class BoardSpecificInfo:
         clocks = clock_ranges.keys()
         self._external_clock_frequency_ranges = {}
         for clock in clocks:
-            range = ExternalClockFrequencyRange(clock_ranges[clock][0], clock_ranges[clock][1])
+            freq_range = ExternalClockFrequencyRange(clock_ranges[clock][0], clock_ranges[clock][1])
 
             if clock == "Fast":
                 clock = ClockSources.FAST_EXTERNAL_CLOCK
@@ -181,22 +181,13 @@ class BoardSpecificInfo:
             elif clock == "DC":
                 clock = ClockSources.EXTERNAL_CLOCK_DC
 
-            self._external_clock_frequency_ranges.update({clock : range})
+            self._external_clock_frequency_ranges.update({clock : freq_range})
 
     @property
     def supported_clocks(self) -> list[ClockSources]:
-        clocks = [ClockSources.INTERNAL_CLOCK]
-        for clock in list(self._external_clock_frequency_ranges.keys()):
-            if clock == "Fast":
-                clocks.append(ClockSources.FAST_EXTERNAL_CLOCK)
-            elif clock == "Medium":
-                clocks.append(ClockSources.MEDIUM_EXTERNAL_CLOCK)
-            elif clock == "Slow":
-                clocks.append(ClockSources.SLOW_EXTERNAL_CLOCK)
-            elif clock == "AC":
-                clocks.append(ClockSources.EXTERNAL_CLOCK_AC)
-            elif clock == "DC":
-                clocks.append(ClockSources.EXTERNAL_CLOCK_DC)
+        clocks = [ClockSources.INTERNAL_CLOCK] # All boards have an internal clock
+        for external_clock in list(self._external_clock_frequency_ranges.keys()):
+            clocks.append(external_clock)       
         return clocks
     
     @property
@@ -212,7 +203,7 @@ class BoardSpecificInfo:
             trigger_sources.append(TriggerSources[f"TRIG_CHAN_{chr(ord('C') + i)}"])
         return trigger_sources
         
-    def external_clock_frequency_ranges(self, clock_source:ClockSources):
+    def external_clock_frequency_ranges(self, clock_source:ClockSources) -> ExternalClockFrequencyRange:
         return self._external_clock_frequency_ranges[clock_source]
 
 
