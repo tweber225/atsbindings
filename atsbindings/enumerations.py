@@ -201,6 +201,30 @@ class ADMAModes(IntEnum):
     ADMA_NPT = 0x200
     ADMA_TRIGGERED_STREAMING = 0x400
 
+    def __str__(self):
+        if self.value == 0:
+            return "Traditional"
+        elif self.value == 0x100:
+            return "Continuous"
+        elif self.value == 0x200:
+            return "NPT"
+        else:
+            return "Triggered streaming"
+        
+    @classmethod
+    def from_str(cls, mode:str):
+        mode_lower = mode.lower()
+        if mode_lower == "traditional":
+            return cls.ADMA_TRADITIONAL_MODE
+        elif mode_lower == "continuous":
+            return cls.ADMA_CONTINUOUS_MODE
+        elif mode_lower in ["npt", "no pretrigger", "no pre-trigger"]:
+            return cls.ADMA_NPT
+        elif mode_lower == "triggered streaming":
+            return cls.ADMA_TRIGGERED_STREAMING
+        else:
+            raise ValueError(f"Invalid ADMA mode: {mode}")
+        
 
 class ADMAFlags(IntEnum):
     ADMA_EXTERNAL_STARTCAPTURE = 0x1
