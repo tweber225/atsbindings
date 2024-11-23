@@ -424,12 +424,15 @@ class Capabilities(Enum):
 class Couplings(Enum):
     AC_COUPLING = 1
     DC_COUPLING = 2
+    GND_COUPLING = 4
 
     def __str__(self):
         if self.value == 1:
             return "AC"
-        else:
+        elif self.value == 2:
             return "DC"
+        else:
+            return "Ground"
 
     @classmethod
     def from_str(cls, coupling_str:str):
@@ -438,6 +441,8 @@ class Couplings(Enum):
             return cls.AC_COUPLING
         elif coupling == "dc":
             return cls.DC_COUPLING
+        elif coupling == "ground":
+            return cls.GND_COUPLING
         else:
             raise ValueError(f"'{coupling_str}' is not a valid Couplings enum string")
 

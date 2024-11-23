@@ -46,6 +46,9 @@ class BoardSpecificInfo:
 
         self.channels:int = bsi[board_kind]["channels"]
         self._set_input_ranges(bsi[board_kind]["input_ranges"]) # available input range depends on input impedance, so this property is more complicated
+        self.input_couplings:list[Couplings] = bsi[board_kind["input_coupling"]]
+        self.data_packings:list[PackModes] = bsi[board_kind["data_packing"]]
+        self.configure_lsb:bool = bsi[board_kind["configure_lsb"]]
         self.min_record_size:int = bsi[board_kind]["min_record_size"]
         self.pretrig_alignment:int = bsi[board_kind]["pretrig_alignment"]
         self.record_resolution:int = bsi[board_kind]["record_resolution"]
@@ -53,6 +56,7 @@ class BoardSpecificInfo:
         self._samples_per_timestamp:dict = bsi[board_kind]["samples_per_timestamp"]
         self._channel_configs:list = bsi[board_kind]["channel_configs"]
         self.sample_rates:list[SampleRates] = bsi[board_kind]["sample_rates"]
+        self.bandwidth_limit:bool = bsi[board_kind["bandwidth_limit"]]
         self.external_trigger_ranges:list = bsi[board_kind]["external_trigger_levels"]
         self._set_external_clock_frequency_ranges(bsi[board_kind]["external_clock_frequency_limits"])
 
@@ -73,7 +77,7 @@ class BoardSpecificInfo:
                 elif u == "V":
                     ranges.append(InputRanges.from_v(float(v)))
             self._input_impedances_ranges.update({impedance: ranges})
-
+    
     @property
     def input_impedances(self):
         """Returns a list of the available input impedances."""
@@ -83,6 +87,34 @@ class BoardSpecificInfo:
         """Returns list of input ranges for the given input impedance."""
         return self._input_impedances_ranges[impedance]
     
+    @property
+    def input_couplings(self):
+        return self._input_couplings
+    
+    @input_couplings.setter
+    def input_couplings(self, coupling_strs:list[str]):
+        self._input_couplings = []
+        coupling_strs = [s.lower() for s in coupling_strs]
+        if "ac" in coupling_strs:
+            self._input_couplings.append(Couplings.AC_COUPLING)
+        if "dc" in coupling_strs:
+            self._input_couplings.append(Couplings.DC_COUPLING)
+        if "ground" in coupling_strs:
+            self._input_couplings.append(Couplings.GND_COUPLING)
+
+    @property
+    def data_packings(self):
+        return self._data_packings
+    
+    @data_packings.setter
+    def data_packings(self, packing_strs:list[str]):
+        self._data_packings = [PackModes.PACK_DEFAULT]
+        packing_strs = [s.lower() for s in packing_strs]
+        if "8-bit" in packing_strs:
+            self._input_couplings.append(PackModes.PACK_8_BITS_PER_SAMPLE)
+        if "12-bit" in packing_strs:
+            self._input_couplings.append(PackModes.PACK_12_BITS_PER_SAMPLE)
+
     def samples_per_timestamp(self, active_channels:int):
         """Returns the number of sample clock periods per timestamp increment. Depends on the number of active channels"""
         if active_channels == 1:

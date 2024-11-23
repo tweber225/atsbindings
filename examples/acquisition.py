@@ -164,6 +164,7 @@ finally:
 print(f"Acquisition done")
 
 
+# Optional plotting
 try:
     import matplotlib.pyplot as plt
 except:

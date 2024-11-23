@@ -229,15 +229,53 @@ for row in rows:
                 low_freq, high_freq 
             ]
 
-
+# Make a list of all the board models found
 m1 = model_impedance_range.keys()
 m2 = internal_clock_sample_rates.keys()
 m3 = samples_per_timestamp.keys()
 models = list(set(m1) & set(m2) & set(m3))
 models = sorted(models)
 
+# MISCELLANEOUS FEATURES SUPPORT
+misc_features_section = soup.find('section', id='miscellaneous-features-support')
+
+# Initialize dictionaries to store the data
+ # init all models' entries for this to false
+input_coupling = defaultdict(dict)
+data_packing_8_bit = defaultdict(dict)
+data_packing_12_bit = defaultdict(dict)
+
+# Extract all <dt> and <dd> pairs
+dts = misc_features_section.find_all('dt')
+dds = misc_features_section.find_all('dd')
+for dt, dd in zip(dts, dds):
+    if dt.get_text() == "Bandwidth limit":
+        bw_limit_models = dd.get_text().strip().split(', ')
+        bw_limit = {key: (key in bw_limit_models) for key in models}
+    elif dt.get_text() == "AC input coupling":
+        ac_input_models = dd.get_text().strip().split(', ')
+        ac_input = {key: (key in ac_input_models) for key in models}
+    elif dt.get_text() == "DC input coupling":
+        dc_input_models = dd.get_text().strip().split(', ')
+        dc_input = {key: (not key in dc_input_models) for key in models} # All boards EXCEPT ...
+    elif dt.get_text() == "Ground input coupling":
+        ground_input_models = dd.get_text().strip().split(', ')
+        ground_input = {key: (key in ground_input_models) for key in models}
+    elif dt.get_text() == "8-bit data packing":
+        packing_8bit_models = dd.get_text().strip().split(', ')
+        packing_8bit = {key: (key in packing_8bit_models) for key in models}
+    elif dt.get_text() == "12-bit data packing":
+        packing_12bit_models = dd.get_text().strip().split(', ')
+        packing_12bit = {key: (key in packing_12bit_models) for key in models}
+    elif dt.get_text() == "Configure LSB":
+        configure_lsb_models = dd.get_text().strip().split(', ')
+        configure_lsb = {key: (key in configure_lsb_models) for key in models}
+
+
 class InlineDict(dict, toml.decoder.InlineTableDict):
-    # Flags to save nested dictionary as flat in toml file (less messy)
+    # Flags to save nested dictionary as flat in toml file (less messy).
+    # The TOML file would technically work without this, but it makes the file 
+    # much more human readable.
     pass
 
 
@@ -250,6 +288,15 @@ for model in models:
     bsi[model] = {
         "channels": channels,
         "input_ranges": InlineDict(model_impedance_range[model]),
+        "input_coupling": [s for s, c in zip(
+            ['AC', 'DC', 'Ground'], 
+            [ac_input[model], dc_input[model], ground_input[model]]
+        ) if c],
+        "data_packing": [s for s, c in zip(
+            ['8-bit', '12-bit'], 
+            [packing_8bit[model], packing_12bit[model]]
+        ) if c],
+        "configure_lsb": configure_lsb[model],
         "min_record_size": samples_per_record_requirements[model]['Min Record Size'],
         "pretrig_alignment": samples_per_record_requirements[model]['Pretrig Alignment'],
         "record_resolution": samples_per_record_requirements[model]['Resolution'],
@@ -257,6 +304,7 @@ for model in models:
         "samples_per_timestamp": InlineDict(samples_per_timestamp[model]),
         "channel_configs": channel_configs[channels],
         "sample_rates": internal_clock_sample_rates[model],
+        "bandwidth_limit": bw_limit[model],
         "external_trigger_levels": external_trigger_levels[model],
         "external_clock_frequency_limits": InlineDict(external_clock_frequency_limits[model])
     }
