@@ -18,9 +18,15 @@ class ClockSources(Enum):
     INTERNAL_CLOCK_SET_VCO = 18
 
     def __str__(self):
-        """ Provides a readable version """
-        return self.name.replace('_', ' ').title()
-    
+        """ Provides a readable version """      
+        words = self.name.split('_')
+        for i in range(len(words)):
+            if words[i].upper() in ["DC", "AC"]:  # Check if the word is an abbreviation (all uppercase)
+                continue  # Don't change it
+            words[i] = words[i].capitalize()  # Capitalize normal words
+        
+        return ' '.join(words)
+
     @classmethod
     def from_str(cls, source_str:str):
         """ Returns the enumeration matching the readable string """

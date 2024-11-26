@@ -9,7 +9,10 @@ samples_per_record = 1024
 records_per_buffer = 128
 buffers_to_acquire = 4
 buffer_count = 4
-trigger_source = Ats.TriggerSources.TRIG_EXTERNAL
+trigger_source = Ats.TriggerSources.TRIG_CHAN_A
+# If using external trigger, make sure to set a compatible external trigger range
+if trigger_source == Ats.TriggerSources.TRIG_EXTERNAL:
+    external_trigger_range = Ats.ExternalTriggerRanges.ETR_5V
 acquisition_mode = Ats.ADMAModes.ADMA_TRADITIONAL_MODE
 enable_headers = True # Required for timestamps in Traditional ADMA mode
 enable_footers = False # Required for timestamps in NPT ADMA mode
@@ -58,12 +61,13 @@ board.set_trigger_operation(
     level2=192
 )
 
-board.set_external_trigger(
-    coupling=Ats.Couplings.DC_COUPLING,
-    range=Ats.ExternalTriggerRanges.ETR_2V5
-)
+if trigger_source == Ats.TriggerSources.TRIG_EXTERNAL:
+    board.set_external_trigger(
+        coupling=Ats.Couplings.DC_COUPLING,
+        range=external_trigger_range
+    )
 
-board.set_trigger_time_out(0) # setting 0 makes digitizer wait for trigger (like 'Normal' triggering)
+board.set_trigger_time_out(0) # setting 0 makes digitizer wait (until timeout) for trigger. Like 'Normal' triggering on oscilloscope.
 
 board.set_trigger_delay(0)
 
