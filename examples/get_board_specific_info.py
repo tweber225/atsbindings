@@ -1,5 +1,9 @@
 from atsbindings import Board, Ats
 
+"""
+Example shows how to retrieve board-specific information, alogn with other 
+parameters such as board serial number, bits per sample, and memory size.
+"""
 
 # Initialize first board/subsystem and report the model number ('kind')
 board = Board()
@@ -59,4 +63,10 @@ if len(clks) > 1:
     eclk_range = bsi.external_clock_frequency_ranges(clks[1])
     print(f"The supported frequency range for "
           f"{clks[1]} is {eclk_range.min} to {eclk_range.max}")
+
+# Record size limitations
+samples_per_channel, sample_size = board.get_channel_info()
+print(f"The sample resolution is {sample_size} and the board contains memory for {round(samples_per_channel/2**20)} megasamples.")
+print(f"The minimum record size is {bsi.min_record_size} and can be increased "
+      f"in increments of {bsi.record_resolution}.")
 

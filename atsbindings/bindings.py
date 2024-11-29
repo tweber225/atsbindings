@@ -526,7 +526,7 @@ class Board:
     
     @ctypes_sig([c_void_p, c_void_p, c_void_p])
     def get_channel_info(self):
-        '''Get the on-board memory in samples per channe and sample size in bits per sample'''
+        '''Get the on-board memory in samples per channel and sample size in bits per sample'''
         memory_size = c_uint32(0)
         bits_per_sample = c_uint8(0)
         ats.AlazarGetChannelInfo(self._handle, byref(memory_size), byref(bits_per_sample))
