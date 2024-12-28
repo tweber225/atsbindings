@@ -45,7 +45,7 @@ for i in range(nchannels_present):
     board.input_control_ex(
         channel=Ats.Channels.from_int(i),
         coupling=Ats.Couplings.DC_COUPLING,
-        input_range=Ats.InputRanges.from_v(input_ranges[i]),
+        input_range=Ats.InputRanges.from_volts(input_ranges[i]),
         impedance=Ats.Impedances.IMPEDANCE_50_OHM,
     )
 

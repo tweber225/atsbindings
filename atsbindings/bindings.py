@@ -73,9 +73,9 @@ class BoardSpecificInfo:
             for r in input_impedance_ranges_dict[key]:
                 v,u = re.findall(r"±(\d+)(mV|V)", r)[0]
                 if u == "mV":
-                    ranges.append(InputRanges.from_v(float(v)*1e-3))
+                    ranges.append(InputRanges.from_volts(float(v)*1e-3))
                 elif u == "V":
-                    ranges.append(InputRanges.from_v(float(v)))
+                    ranges.append(InputRanges.from_volts(float(v)))
             self._input_impedances_ranges.update({impedance: ranges})
     
     @property
@@ -512,7 +512,7 @@ class Board:
         """
         Get a board kind (model number) of the digitizer board.
         """
-        return BoardKind(ats.AlazarGetBoardKind(self._handle))
+        return BoardType(ats.AlazarGetBoardKind(self._handle))
 
     @ctypes_sig([c_void_p, POINTER(c_byte), POINTER(c_byte)])
     def get_board_revision(self):
