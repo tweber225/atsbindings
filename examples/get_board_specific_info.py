@@ -34,7 +34,7 @@ print(f"Input coupling options: {', '.join(couplings)}")
 # Get data packing options
 packings = [str(p) for p in bsi.data_packings][1:] # Skip first option which is default non-packed
 if len(packings) > 0:
-    print(f"Input coupling options: {', '.join(packings)}")
+    print(f"Data packing options: {', '.join(packings)}")
 else:
     print("The board does not support data packing")
 

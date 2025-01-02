@@ -156,13 +156,14 @@ class BoardSpecificInfo:
         self._external_trigger_ranges = []
         for etl in ranges:
             if etl == "5 V":
-                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_5V)
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_5V_50OHM)
             elif etl == "1 V":
-                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_1V)
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_1V_50OHM)
             if etl == "TTL":
                 self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_TTL)
             if etl == "2.5 V":
-                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_2V5)
+                self._external_trigger_ranges.append(ExternalTriggerRanges.ETR_2V5_50OHM)
+            # There is also a +/-5 V, 300 ohms enumeration, but it doesn't appear for any models in board specific info page.
     
     def _set_external_clock_frequency_ranges(self, clock_ranges):
         clocks = clock_ranges.keys()
@@ -305,11 +306,17 @@ def _free_buffer_u16(board_handle, address):
     
 
 class Buffer:
-    def __init__(self, board:'Board', channels:int,
-                 records_per_buffer:int, samples_per_record:int, 
-                 include_header:bool=False, include_footer:bool=False,
-                 interleave_samples:bool=False,
-                 data_packing=PackModes.PACK_DEFAULT):
+    def __init__(
+        self, 
+        board: 'Board', 
+        channels: int,
+        records_per_buffer: int, 
+        samples_per_record: int, 
+        include_header: bool = False, 
+        include_footer: bool = False,
+        interleave_samples: bool = False,
+        data_packing = PackModes.PACK_DEFAULT
+    ):
         self._board = board
         self.channels = channels
         self.records_per_buffer = records_per_buffer
@@ -356,7 +363,7 @@ class Buffer:
         self.buffer = np.frombuffer(ctypes_array, dtype=np_dtype)
         self.buffer.shape = (records_per_buffer, size_per_record//int(self.bytes_per_sample))
 
-        self._ctypes_buffer = ctypes_array # hold ref to avoid GC
+        self._ctypes_buffer = ctypes_array # hold ref to avoid garbage collection
 
     def __del__(self):
         if self.bytes_per_sample == 1:
@@ -428,9 +435,11 @@ class Buffer:
             footer_offset = self.footer_size // int(self.bytes_per_sample) 
             
             if self.data_packing == PackModes.PACK_12_BITS_PER_SAMPLE:
-                # No footers for 12-bit packing mode
+                # NOTE: this is not very fast, more of a proof of concept
+                # (in future should be replaced with compiled version or find a fast library)
+                # No footers allowed for 12-bit packing mode
                 data = np.array(self.buffer[:, header_offset:], dtype=np.uint16)
-                data.shape = (128, -1, 3)
+                data.shape = (self.records_per_buffer, -1, 3) # remember that -1 infers the value for that dimension
                 unpacked0 = data[:,:,[0]] | ((data[:,:,[1]] & 0x0F) << 8)
                 unpacked1 = (data[:,:,[1]] >> 4) | (data[:,:,[2]] << 4)
                 data = np.concatenate((unpacked0,unpacked1),2)
@@ -440,7 +449,10 @@ class Buffer:
                     self.channels
                 )
             else:
-                data = np.array(self.buffer[:, header_offset:-footer_offset or None])
+                data = np.array(
+                    self.buffer[:, header_offset:-footer_offset or None],
+                    dtype=self.buffer.dtype
+                )
                 data.shape = (
                     self.records_per_buffer, 
                     self.samples_per_record - footer_offset//self.channels, 
@@ -453,7 +465,8 @@ class Buffer:
                 // self.channels
             samples_per_record_minus_footer = self.samples_per_record - footer_offset
             data = np.empty(
-                shape=(self.records_per_buffer, self.channels, samples_per_record_minus_footer)
+                shape=(self.records_per_buffer, self.channels, samples_per_record_minus_footer),
+                dtype=self.buffer.dtype
             )
             for c in range(self.channels):
                 data[:,c,:] = self.buffer[
@@ -461,6 +474,8 @@ class Buffer:
                     c*samples_per_record_minus_footer + (c+1)*header_offset: (c+1)*samples_per_record_minus_footer + (c+1)*header_offset
                 ]
         return data
+    
+    # add get_raw() or something to return copy of buffer raw data (including header/footers)?
 
 
 class Board:
@@ -574,7 +589,7 @@ class Board:
         ats.AlazarPostAsyncBuffer(self._handle, buffer, buffer_length)
 
     @ctypes_sig([c_void_p, c_uint32, c_uint32, POINTER(c_uint32)])
-    def query_capability(self, capability:Capabilities):
+    def query_capability(self, capability: Capabilities):
         """
         Get a device attribute as an unsigned 32-bit integer. 
         """
