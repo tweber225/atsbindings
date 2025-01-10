@@ -426,6 +426,15 @@ class Buffer:
         buffers = [create_string_buffer(hb, 16) for hb in footer_bytes]
         return [cast(b, POINTER(AtsFooter)).contents for b in buffers]
     
+    def get_timestamps(self) -> list[int]:
+        """Extracts timestamps from either the header or footer."""
+        if self.include_header:
+            return [header.timestamp for header in self.get_headers()]
+        elif self.include_footer:
+            return [header.timestamp for header in self.get_footers()]
+        else:
+            return None
+    
     def get_data(self):
         """Returns a copy of the buffer data, omitting headers or footers."""
         if self.interleave_samples:
