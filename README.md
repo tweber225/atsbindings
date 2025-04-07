@@ -20,7 +20,10 @@ Developers familiar with the AlazarTech API can get started quickly. For those w
   - Create values from integer and floating-point inputs.\
     Example:
     ```
-    sample_rate = Ats.SampleRates.from_hertz(250e6)
+    >>> from atsbindings import Ats
+    >>> sample_rate = 250e6
+    >>> Ats.SampleRates.from_hertz(2 * sample_rate)
+    <SampleRates.SAMPLE_RATE_500MSPS: 48>
     ```
 - **`BoardSpecificInfo`:**\
   Provides board-specific parameters and feature details, as described in the [API documentation](https://docs.alazartech.com/ats-sdk-user-guide/latest/board-specific-info.html).\
@@ -33,7 +36,7 @@ Developers familiar with the AlazarTech API can get started quickly. For those w
 
 ## Features Not Included
 - **High-Level API:**\
-  A more pythonic interface is beyond the scope of this project.
+  A more pythonic interface is beyond the scope of this wrapper package. See the [Dirigo plugin](https://github.com/dirigo-developers/dirigo-alazar) for a higher level API.
 - **Single-Port Acquisitions:**\
   Deprecated, lower-performance data transfer method.
 - **Linux Support:**\

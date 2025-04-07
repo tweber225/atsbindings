@@ -23,6 +23,8 @@ classifiers = [
   "Topic :: System :: Hardware"
 ]
 dependencies = ["numpy>=1.21.0"]
+urls = {"Homepage" = "https://github.com/tweber225/atsbindings"}
+
 
 [tool.setuptools.package-data]
 atsbindings = ["board_specific_info.toml"]
