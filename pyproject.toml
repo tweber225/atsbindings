@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "atsbindings"
-version = "0.2.0"
+version = "0.2.1"
 description = "Bindings for Alazar digitizer boards"
 authors = [{ name = "T. D. Weber", email = "tweber@mit.edu" }]
 license = {text = "MIT"}
