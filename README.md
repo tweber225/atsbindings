@@ -44,7 +44,7 @@ Developers familiar with the AlazarTech API can get started quickly. For those w
 ## Limitations
 While this library closely wraps the C API, the Python interpreter introduces some overhead that may affect performance in certain scenarios. To minimize this impact:
 - Limit the frequency of wrapper calls.
-- Use relatively large buffer sizes for data transfer.
+- Use relatively large buffer sizes for data transfer. ([Alazar documentation](https://docs.alazartech.com/ats-sdk-user-guide/latest/reference/AlazarBeforeAsyncRead.html) suggest setting the buffer size between 1 MB and 16 MB.)
 
 ## Installation
 1. **Install the Digitizer Driver:**\
@@ -54,9 +54,9 @@ While this library closely wraps the C API, the Python interpreter introduces so
 3. **Install the Digitizer:**\
    Power down the computer, install the digitizer in an appropriate extension slot, and power up.
 4. **Test with Alazar DSO:**\
-   Run Alazar DSO to confirm the card is functioning correctly. If the card does not work in DSO, it will not work with `atsbindings`.
-5. **Clone and Install `atsbindings`:**\
-   Clone this repository and install it with pip. Using a virtual environment manager such as Conda is recommended.
+   Run Alazar DSO to confirm the card is functioning correctly. _If the card does not work in DSO, it will not work with `atsbindings`_!
+5. **Install `atsbindings`:**\
+   Install atsbindings from PyPI (or clone this repository and install it with pip). Using a virtual environment manager such as Conda is recommended.
 6. **Run Examples:**\
    Try the example scripts in the [examples](examples/) folder to validate your installation.
 
