@@ -1,13 +1,27 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "atsbindings"
-version = "0.1.0"
+version = "0.2.0"
 description = "Bindings for Alazar digitizer boards"
 authors = [{ name = "T. D. Weber", email = "tweber@mit.edu" }]
 license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: System :: Hardware"
+]
 dependencies = ["numpy>=1.21.0"]
 
 [tool.setuptools.package-data]
