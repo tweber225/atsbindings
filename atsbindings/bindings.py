@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 import tomllib
 import re
 import ctypes
@@ -435,19 +436,37 @@ class Buffer:
         else:
             return None
     
-    def get_data(self):
-        """Returns a copy of the buffer data, omitting headers or footers."""
+    @cached_property
+    def _header_offset(self) -> int:
         if self.interleave_samples:
-            # Data order: [Records][Timepoints][Channels] (both headers, max 2, precede sample data)
-            header_offset = self.header_size * min(self.channels,2) \
-                // int(self.bytes_per_sample)
-            footer_offset = self.footer_size // int(self.bytes_per_sample) 
-            
+            return (self.header_size * min(self.channels,2) 
+                    // int(self.bytes_per_sample))
+        else:
+            return self.header_size // self.bytes_per_sample
+    
+    @cached_property
+    def _footer_offset(self) -> int:
+        if self.interleave_samples:
+            return self.footer_size // int(self.bytes_per_sample) 
+        else:
+            return self.footer_size // self.bytes_per_sample // self.channels
+        
+    def get_data(self, data_array: Optional[np.ndarray] = None) -> np.ndarray:
+        """
+        Get buffer data, omitting headers or footers. Provide a Numpy array to
+        copy data to. If no array is provided, a new array will be created (slower).
+        
+        Args:
+        out_array (optional): copy data to this Numpy array
+        """
+        if self.interleave_samples:
+            # Data order: [Records][Timepoints][Channels] (both headers, max 2, precede sample data)            
             if self.data_packing == PackModes.PACK_12_BITS_PER_SAMPLE:
                 # NOTE: this is not very fast, more of a proof of concept
                 # (in future should be replaced with compiled version or find a fast library)
                 # No footers allowed for 12-bit packing mode
-                data = np.array(self.buffer[:, header_offset:], dtype=np.uint16)
+                data = np.array(self.buffer[:, self._header_offset:], dtype=np.uint16)
+
                 data.shape = (self.records_per_buffer, -1, 3) # remember that -1 infers the value for that dimension
                 unpacked0 = data[:,:,[0]] | ((data[:,:,[1]] & 0x0F) << 8)
                 unpacked1 = (data[:,:,[1]] >> 4) | (data[:,:,[2]] << 4)
@@ -458,21 +477,20 @@ class Buffer:
                     self.channels
                 )
             else:
-                data = np.array(
-                    self.buffer[:, header_offset:-footer_offset or None],
-                    dtype=self.buffer.dtype
-                )
-                data.shape = (
-                    self.records_per_buffer, 
-                    self.samples_per_record - footer_offset//self.channels, 
-                    self.channels
-                )
-        else:
+                if data_array is not None:
+                    data_array.shape = (self.records_per_buffer, -1)
+                    data_array.dtype = self.buffer.dtype
+                    data_array[:,:] = self.buffer[:, self._header_offset:-self._footer_offset or None]
+                else:
+                    data_array = np.array(
+                        self.buffer[:, self._header_offset:-self._footer_offset or None],
+                        dtype=self.buffer.dtype
+                    )
+                data_array.shape = (self.records_per_buffer, -1, self.channels)
+
+        else: # Non-interleaved
             # Data order: [Records][Channels][Timepoints]
-            header_offset = self.header_size // self.bytes_per_sample
-            footer_offset = self.footer_size // self.bytes_per_sample \
-                // self.channels
-            samples_per_record_minus_footer = self.samples_per_record - footer_offset
+            samples_per_record_minus_footer = self.samples_per_record - self._footer_offset
             data = np.empty(
                 shape=(self.records_per_buffer, self.channels, samples_per_record_minus_footer),
                 dtype=self.buffer.dtype
@@ -480,9 +498,10 @@ class Buffer:
             for c in range(self.channels):
                 data[:,c,:] = self.buffer[
                     :, 
-                    c*samples_per_record_minus_footer + (c+1)*header_offset: (c+1)*samples_per_record_minus_footer + (c+1)*header_offset
+                    c*samples_per_record_minus_footer + (c+1)*self._header_offset: (c+1)*samples_per_record_minus_footer + (c+1)*self._header_offset
                 ]
-        return data
+        
+        return data_array
     
     # add get_raw() or something to return copy of buffer raw data (including header/footers)?
 
