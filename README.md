@@ -3,6 +3,9 @@ Python bindings for the [AlazarTech C API](https://docs.alazartech.com/ats-sdk-u
 
 Developers familiar with the AlazarTech API can get started quickly. For those with limited experience, it is recommended to read the official API [Programmer's Guide](https://docs.alazartech.com/ats-sdk-user-guide/latest/programmers-guide.html) and review the [acquisition.py](examples/acquisition.py) example to understand how the bindings translate into Python.
 
+![PyPI](https://img.shields.io/pypi/v/atsbindings)
+![PyPI - Downloads](https://static.pepy.tech/badge/atsbindings)
+
 ## Design
 - **Pythonic Naming Convention:**\
   C API functions are renamed to follow Python conventions with the leading "Alazar" namespace removed. For example:
