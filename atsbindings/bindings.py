@@ -84,7 +84,7 @@ class BoardSpecificInfo:
         """Returns a list of the available input impedances."""
         return list(self._input_impedances_ranges.keys())
     
-    def input_ranges(self, impedance:Impedances) -> list[InputRanges]:
+    def input_ranges(self, impedance: Impedances) -> list[InputRanges]:
         """Returns list of input ranges for the given input impedance."""
         return self._input_impedances_ranges[impedance]
     
@@ -257,6 +257,7 @@ class System:
     Object to provide methods to system parameters.
     """
     @ctypes_sig([POINTER(c_byte), POINTER(c_byte), POINTER(c_byte)])
+    @staticmethod
     def get_sdk_version() -> tuple[int,int,int]:
         major = c_byte(0)
         minor = c_byte(0)
@@ -265,6 +266,7 @@ class System:
         return (major.value, minor.value, revision.value)
 
     @ctypes_sig([POINTER(c_byte), POINTER(c_byte), POINTER(c_byte)])
+    @staticmethod
     def get_driver_version() -> tuple[int,int,int]:
         major = c_byte(0)
         minor = c_byte(0)
@@ -273,10 +275,12 @@ class System:
         return (major.value, minor.value, revision.value)
 
     @ctypes_sig([], errcheck=None)
+    @staticmethod
     def num_of_systems() -> int:
         return ats.AlazarNumOfSystems()
 
     @ctypes_sig([c_uint32], errcheck=None)
+    @staticmethod
     def boards_in_system_by_system_id(sid:int) -> int:
         return ats.AlazarBoardsInSystemBySystemID(sid)
 

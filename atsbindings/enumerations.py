@@ -746,7 +746,7 @@ class InputRanges(Enum):
         Returns the enumeration member for a given voltage range in volts.
         """
         whole_num = int(v)
-        decimal = v - whole_num
+        decimal = float(v) - whole_num
         millivolts = int(1000 * decimal)
         if whole_num > 0:
             if millivolts == 250:
