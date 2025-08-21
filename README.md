@@ -72,6 +72,7 @@ This library has been tested with the following boards:
   - For 2-channel acquisiton, samples must be interleaved.
   - No Traditional AutoDMA mode on this board.
 - **ATS9870:**
+- **ATS9351**
 - **ATS9350**
 - **ATS9440**
 - **ATS460**
