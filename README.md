@@ -72,10 +72,13 @@ This library has been tested with the following boards:
   - For 2-channel acquisiton, samples must be interleaved.
   - No Traditional AutoDMA mode on this board.
 - **ATS9870:**
-  - LED example does not work properly (LED remains alway on).
 - **ATS9350**
 - **ATS9440**
 - **ATS460**
+
+Not supported:
+- **ATS9370**
+  - No longer listed on Alazar website. Incomplete information in [BSI table](https://docs.alazartech.com/ats-sdk-user-guide/latest/board-specific-info.html).
 
 ## Contributing
 Contributions are welcome! If you encounter an issue, have a feature suggestion, or want to contribute code, please open an issue or submit a pull request.
